@@ -625,6 +625,16 @@ function ContestZones({ stats }) {
 function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
   const activePlayer = players.find((player) => player.name === activePlayerName) || players[0];
   const [expandedContestId, setExpandedContestId] = useState(activePlayer?.contests[0]?.contestId ?? null);
+  const primaryStats = [
+    { label: "Appearances", value: activePlayer.appearances },
+    { label: "Wins", value: activePlayer.wins },
+    { label: "FG%", value: `${activePlayer.fgPct}%` },
+  ];
+  const secondaryStats = [
+    { label: "Avg Finish", value: activePlayer.avgFinish, sub: "elimination round score" },
+    { label: "Donut Gang", value: activePlayer.donutGangAppearances, sub: "0/5 in Round 1" },
+    { label: "0/5 Rounds", value: activePlayer.zeroRounds, sub: "all rounds combined" },
+  ];
 
   useEffect(() => {
     setExpandedContestId(activePlayer?.contests[0]?.contestId ?? null);
@@ -642,12 +652,24 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
       <div style={{ ...styles.playersLayout, ...(isMobile ? styles.singleColumnLayout : null) }}>
         <aside style={styles.panel}>
           <div style={styles.eyebrow}>Directory</div>
-          <div style={{ ...(isMobile ? styles.mobilePickerRow : styles.listStack), marginTop: 14 }}>
+          <div style={{ ...(isMobile ? styles.mobilePlayerDirectory : styles.listStack), marginTop: 14 }}>
             {players.map((player) => (
-              <button key={player.name} onClick={() => onOpenPlayer(player.name)} style={player.name === activePlayer.name ? styles.listActive : styles.listButton}>
+              <button
+                key={player.name}
+                onClick={() => onOpenPlayer(player.name)}
+                style={
+                  isMobile
+                    ? player.name === activePlayer.name
+                      ? styles.mobilePlayerButtonActive
+                      : styles.mobilePlayerButton
+                    : player.name === activePlayer.name
+                      ? styles.listActive
+                      : styles.listButton
+                }
+              >
                 <strong>{player.name}</strong>
-                <span>{player.appearances} appearances</span>
-                <span>{player.wins} wins / {player.fgPct}% FG</span>
+                <span>{player.appearances} app / {player.fgPct}% FG</span>
+                {!isMobile && <span>{player.wins} wins / {player.fgPct}% FG</span>}
               </button>
             ))}
           </div>
@@ -662,14 +684,36 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
               </div>
             </div>
 
-            <div style={{ ...styles.statGrid, ...(isMobile ? styles.mobileStatGrid : null) }}>
-              <SummaryStat label="Appearances" value={activePlayer.appearances} sub="weekly contests" />
-              <SummaryStat label="Wins" value={activePlayer.wins} sub={`${activePlayer.runnerUps} runner-ups`} />
-              <SummaryStat label="Career FG%" value={`${activePlayer.fgPct}%`} sub={`${activePlayer.totalMakes}/${activePlayer.totalAttempts} total`} />
-              <SummaryStat label="Avg Finish" value={activePlayer.avgFinish} sub="elimination round score" />
-              <SummaryStat label="Donut Gang Appearances" value={activePlayer.donutGangAppearances} sub="0/5 in Round 1" />
-              <SummaryStat label="0/5 Rounds" value={activePlayer.zeroRounds} sub="all rounds combined" />
-            </div>
+            {isMobile ? (
+              <div style={styles.mobilePlayerHero}>
+                <div style={styles.mobilePlayerHeroStats}>
+                  {primaryStats.map((stat) => (
+                    <div key={stat.label} style={styles.mobilePlayerChip}>
+                      <div style={styles.eyebrow}>{stat.label}</div>
+                      <strong style={styles.mobilePlayerChipValue}>{stat.value}</strong>
+                    </div>
+                  ))}
+                </div>
+                <div style={styles.mobileSecondaryStats}>
+                  {secondaryStats.map((stat) => (
+                    <div key={stat.label} style={styles.mobileSecondaryCard}>
+                      <div style={styles.eyebrow}>{stat.label}</div>
+                      <div style={styles.mobileSecondaryValue}>{stat.value}</div>
+                      <div style={styles.muted}>{stat.sub}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div style={styles.statGrid}>
+                <SummaryStat label="Appearances" value={activePlayer.appearances} sub="weekly contests" />
+                <SummaryStat label="Wins" value={activePlayer.wins} sub={`${activePlayer.runnerUps} runner-ups`} />
+                <SummaryStat label="Career FG%" value={`${activePlayer.fgPct}%`} sub={`${activePlayer.totalMakes}/${activePlayer.totalAttempts} total`} />
+                <SummaryStat label="Avg Finish" value={activePlayer.avgFinish} sub="elimination round score" />
+                <SummaryStat label="Donut Gang Appearances" value={activePlayer.donutGangAppearances} sub="0/5 in Round 1" />
+                <SummaryStat label="0/5 Rounds" value={activePlayer.zeroRounds} sub="all rounds combined" />
+              </div>
+            )}
 
             <div style={{ ...styles.twoColumn, ...(isMobile ? styles.singleColumn : null) }}>
               <section style={styles.panelInset}>
@@ -1178,6 +1222,11 @@ const styles = {
     overflowX: "auto",
     paddingBottom: 4,
   },
+  mobilePlayerDirectory: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: 8,
+  },
   listButton: {
     display: "grid",
     gap: 4,
@@ -1199,6 +1248,34 @@ const styles = {
     color: "#F97316",
     padding: "12px 14px",
     cursor: "pointer",
+  },
+  mobilePlayerButton: {
+    display: "grid",
+    gap: 6,
+    textAlign: "left",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: 8,
+    background: "rgba(255,255,255,0.03)",
+    color: "white",
+    padding: "12px 12px",
+    cursor: "pointer",
+    minHeight: 86,
+    alignContent: "start",
+    fontSize: 11,
+  },
+  mobilePlayerButtonActive: {
+    display: "grid",
+    gap: 6,
+    textAlign: "left",
+    border: "1px solid rgba(249,115,22,0.45)",
+    borderRadius: 8,
+    background: "rgba(249,115,22,0.14)",
+    color: "#F97316",
+    padding: "12px 12px",
+    cursor: "pointer",
+    minHeight: 86,
+    alignContent: "start",
+    fontSize: 11,
   },
   table: {
     width: "100%",
@@ -1267,6 +1344,49 @@ const styles = {
     borderRadius: 8,
     overflow: "hidden",
     background: "rgba(255,255,255,0.03)",
+  },
+  mobilePlayerHero: {
+    display: "grid",
+    gap: 12,
+    marginBottom: 18,
+  },
+  mobilePlayerHeroStats: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gap: 8,
+  },
+  mobilePlayerChip: {
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 8,
+    padding: "10px 10px 12px",
+    background: "rgba(255,255,255,0.04)",
+  },
+  mobilePlayerChipValue: {
+    display: "block",
+    marginTop: 6,
+    color: "#F97316",
+    fontSize: 28,
+    lineHeight: 1,
+    fontFamily: "'Bebas Neue', cursive",
+  },
+  mobileSecondaryStats: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gap: 8,
+  },
+  mobileSecondaryCard: {
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 8,
+    padding: "10px 10px 12px",
+    background: "rgba(255,255,255,0.03)",
+  },
+  mobileSecondaryValue: {
+    marginTop: 6,
+    marginBottom: 4,
+    color: "#F97316",
+    fontSize: 26,
+    lineHeight: 1,
+    fontFamily: "'Bebas Neue', cursive",
   },
   historyToggle: {
     width: "100%",

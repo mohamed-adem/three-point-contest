@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 const ZONES = ["LC", "LW", "TK", "RW", "RC"];
 const ZONE_LABELS = ["Left Corner", "Left Wing", "Top Key", "Right Wing", "Right Corner"];
@@ -52,6 +52,23 @@ function sumRound(round) {
   return parseShots(round).reduce((total, shot) => total + shot, 0);
 }
 
+function buildRoundDetail(round) {
+  if (!round || round === "?????") {
+    return {
+      raw: round,
+      score: null,
+      zoneStats: ZONES.map(() => ({ makes: 0, attempts: 0 })),
+    };
+  }
+
+  const shots = parseShots(round);
+  return {
+    raw: round,
+    score: shots.reduce((total, shot) => total + shot, 0),
+    zoneStats: shots.map((shot) => ({ makes: shot, attempts: 1 })),
+  };
+}
+
 function finishLabel(player) {
   if (player.winner) return "Winner";
   if (player.eliminated === 5) return "Runner-up";
@@ -63,6 +80,7 @@ function finishLabel(player) {
 
 function computeContestPlayerStats(name, data) {
   const rounds = ROUND_KEYS.map((key) => data[key]);
+  const roundDetails = rounds.map(buildRoundDetail);
   const zoneStats = ZONES.map(() => ({ makes: 0, attempts: 0 }));
   let totalMakes = 0;
   let totalAttempts = 0;
@@ -81,7 +99,7 @@ function computeContestPlayerStats(name, data) {
     if (roundMakes === 0) zeroRounds += 1;
   });
 
-  const roundScores = rounds.map(sumRound);
+  const roundScores = roundDetails.map((detail) => detail.score);
   const validScores = roundScores.filter((score) => score !== null);
   const roundOneDonut = rounds[0] === "00000";
 
@@ -94,6 +112,7 @@ function computeContestPlayerStats(name, data) {
     best: validScores.length ? Math.max(...validScores) : 0,
     zeroRounds,
     zoneStats,
+    roundDetails,
     roundScores,
     roundsPlayed: validScores.length,
     eliminated: data.eliminated,
@@ -172,6 +191,7 @@ function buildLeagueData(contests) {
         totalMakes: player.totalMakes,
         totalAttempts: player.totalAttempts,
         pct: player.pct,
+        roundDetails: player.roundDetails,
         roundScores: player.roundScores,
       });
     });
@@ -207,6 +227,24 @@ function getRecordLeaders(players, key) {
     value: best,
     leaders: players.filter((player) => player[key] === best && best > 0),
   };
+}
+
+function useIsMobile(breakpoint = 768) {
+  const getMatch = () => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth <= breakpoint;
+  };
+
+  const [isMobile, setIsMobile] = useState(getMatch);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(getMatch());
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [breakpoint]);
+
+  return isMobile;
 }
 
 function ShotMap({ zoneStats, size = "md" }) {
@@ -255,11 +293,11 @@ function SummaryStat({ label, value, sub }) {
   );
 }
 
-function HomePage({ contests, players, records, onOpenContest, onOpenPlayer }) {
+function HomePage({ contests, players, records, onOpenContest, onOpenPlayer, isMobile }) {
   const latest = contests[0];
   return (
     <div>
-      <section style={styles.hero}>
+      <section style={{ ...styles.hero, ...(isMobile ? styles.heroMobile : null) }}>
         <div>
           <div style={styles.eyebrow}>Weekly league archive</div>
           <h1 style={styles.h1}>Mohamed Adem Three Point Contest</h1>
@@ -283,7 +321,7 @@ function HomePage({ contests, players, records, onOpenContest, onOpenPlayer }) {
         </div>
         <div style={{ display: "grid", gap: 10 }}>
           {contests.map((contest) => (
-            <button key={contest.id} onClick={() => onOpenContest(contest.id)} style={styles.historyRow}>
+            <button key={contest.id} onClick={() => onOpenContest(contest.id)} style={{ ...styles.historyRow, ...(isMobile ? styles.historyRowMobile : null) }}>
               <span>{contest.date}</span>
               <strong>{contest.title}</strong>
               <span>🏆 {contest.winner}</span>
@@ -293,7 +331,7 @@ function HomePage({ contests, players, records, onOpenContest, onOpenPlayer }) {
         </div>
       </section>
 
-      <div style={styles.twoColumn}>
+      <div style={{ ...styles.twoColumn, ...(isMobile ? styles.singleColumn : null) }}>
         <section style={styles.panel}>
           <div style={styles.sectionHead}>
             <div>
@@ -332,7 +370,7 @@ function HomePage({ contests, players, records, onOpenContest, onOpenPlayer }) {
   );
 }
 
-function ContestsPage({ contests, activeContestId, onSelectContest }) {
+function ContestsPage({ contests, activeContestId, onSelectContest, isMobile }) {
   const activeContest = contests.find((contest) => contest.id === activeContestId) || contests[0];
   const [contestTab, setContestTab] = useState("overview");
   const overviewStats = activeContest.stats;
@@ -346,10 +384,10 @@ function ContestsPage({ contests, activeContestId, onSelectContest }) {
         </div>
       </div>
 
-      <div style={styles.contestLayout}>
+      <div style={{ ...styles.contestLayout, ...(isMobile ? styles.singleColumnLayout : null) }}>
         <aside style={styles.panel}>
           <div style={styles.eyebrow}>Archive</div>
-          <div style={{ display: "grid", gap: 8, marginTop: 14 }}>
+          <div style={{ ...(isMobile ? styles.mobilePickerRow : styles.listStack), marginTop: 14 }}>
             {contests.map((contest) => (
               <button key={contest.id} onClick={() => onSelectContest(contest.id)} style={contest.id === activeContest.id ? styles.listActive : styles.listButton}>
                 <strong>{contest.title}</strong>
@@ -376,7 +414,7 @@ function ContestsPage({ contests, activeContestId, onSelectContest }) {
               </div>
             </div>
 
-            {contestTab === "overview" && <ContestOverview stats={overviewStats} />}
+            {contestTab === "overview" && <ContestOverview stats={overviewStats} isMobile={isMobile} />}
             {contestTab === "bracket" && <BracketSection contest={activeContest} />}
             {contestTab === "zones" && <ContestZones stats={overviewStats} />}
           </section>
@@ -386,7 +424,7 @@ function ContestsPage({ contests, activeContestId, onSelectContest }) {
   );
 }
 
-function ContestOverview({ stats }) {
+function ContestOverview({ stats, isMobile }) {
   const [sortKey, setSortKey] = useState("finish");
   const sorted = [...stats.players].sort((a, b) => {
     if (sortKey === "finish") return b.eliminated - a.eliminated || b.totalMakes - a.totalMakes;
@@ -418,32 +456,55 @@ function ContestOverview({ stats }) {
         ))}
       </div>
 
-      <div style={{ overflowX: "auto" }}>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              {["#", "Player", "Finish", "Rounds", "Makes", "FG%", "Avg/Rd", "Best", "0/5s"].map((heading) => (
-                <th key={heading} style={styles.th}>{heading}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((player, index) => (
-              <tr key={player.name}>
-                <td style={styles.td}>{index + 1}</td>
-                <td style={{ ...styles.td, color: player.winner ? "#F97316" : "white", fontWeight: 700 }}>{player.winner ? "🏆 " : ""}{player.name}</td>
-                <td style={styles.td}>{finishLabel(player)}</td>
-                <td style={styles.td}>{player.roundsPlayed}</td>
-                <td style={styles.td}>{player.totalMakes}/{player.totalAttempts}</td>
-                <td style={{ ...styles.td, color: player.pct >= 50 ? "#2ecc71" : player.pct >= 30 ? "#f1c40f" : "#e74c3c", fontWeight: 700 }}>{player.pct}%</td>
-                <td style={styles.td}>{player.avg}</td>
-                <td style={{ ...styles.td, color: "#F97316", fontWeight: 700 }}>{player.best}</td>
-                <td style={{ ...styles.td, color: player.zeroRounds ? "#e74c3c" : "rgba(255,255,255,0.4)" }}>{player.zeroRounds}</td>
+      {isMobile ? (
+        <div style={styles.mobileOverviewList}>
+          {sorted.map((player, index) => (
+            <div key={player.name} style={styles.mobileOverviewCard}>
+              <div style={styles.mobileOverviewHead}>
+                <div>
+                  <div style={styles.eyebrow}>#{index + 1} / {finishLabel(player)}</div>
+                  <strong style={{ color: player.winner ? "#F97316" : "white" }}>{player.winner ? "🏆 " : ""}{player.name}</strong>
+                </div>
+                <div style={{ ...styles.recordValue, fontSize: 24, color: player.pct >= 50 ? "#2ecc71" : player.pct >= 30 ? "#f1c40f" : "#e74c3c" }}>{player.pct}%</div>
+              </div>
+              <div style={styles.mobileOverviewStats}>
+                <MiniLine label="Makes" value={`${player.totalMakes}/${player.totalAttempts}`} />
+                <MiniLine label="Rounds" value={player.roundsPlayed} />
+                <MiniLine label="Avg / Rd" value={player.avg} />
+                <MiniLine label="Best" value={player.best} />
+                <MiniLine label="0/5s" value={player.zeroRounds} />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                {["#", "Player", "Finish", "Rounds", "Makes", "FG%", "Avg/Rd", "Best", "0/5s"].map((heading) => (
+                  <th key={heading} style={styles.th}>{heading}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {sorted.map((player, index) => (
+                <tr key={player.name}>
+                  <td style={styles.td}>{index + 1}</td>
+                  <td style={{ ...styles.td, color: player.winner ? "#F97316" : "white", fontWeight: 700 }}>{player.winner ? "🏆 " : ""}{player.name}</td>
+                  <td style={styles.td}>{finishLabel(player)}</td>
+                  <td style={styles.td}>{player.roundsPlayed}</td>
+                  <td style={styles.td}>{player.totalMakes}/{player.totalAttempts}</td>
+                  <td style={{ ...styles.td, color: player.pct >= 50 ? "#2ecc71" : player.pct >= 30 ? "#f1c40f" : "#e74c3c", fontWeight: 700 }}>{player.pct}%</td>
+                  <td style={styles.td}>{player.avg}</td>
+                  <td style={{ ...styles.td, color: "#F97316", fontWeight: 700 }}>{player.best}</td>
+                  <td style={{ ...styles.td, color: player.zeroRounds ? "#e74c3c" : "rgba(255,255,255,0.4)" }}>{player.zeroRounds}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
@@ -544,11 +605,11 @@ function ContestZones({ stats }) {
   );
 }
 
-function PlayersPage({ players, activePlayerName, onOpenPlayer }) {
+function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
   const activePlayer = players.find((player) => player.name === activePlayerName) || players[0];
   const [expandedContestId, setExpandedContestId] = useState(activePlayer?.contests[0]?.contestId ?? null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setExpandedContestId(activePlayer?.contests[0]?.contestId ?? null);
   }, [activePlayerName]);
 
@@ -561,10 +622,10 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer }) {
         </div>
       </div>
 
-      <div style={styles.playersLayout}>
+      <div style={{ ...styles.playersLayout, ...(isMobile ? styles.singleColumnLayout : null) }}>
         <aside style={styles.panel}>
           <div style={styles.eyebrow}>Directory</div>
-          <div style={{ display: "grid", gap: 8, marginTop: 14 }}>
+          <div style={{ ...(isMobile ? styles.mobilePickerRow : styles.listStack), marginTop: 14 }}>
             {players.map((player) => (
               <button key={player.name} onClick={() => onOpenPlayer(player.name)} style={player.name === activePlayer.name ? styles.listActive : styles.listButton}>
                 <strong>{player.name}</strong>
@@ -584,7 +645,7 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer }) {
               </div>
             </div>
 
-            <div style={styles.statGrid}>
+            <div style={{ ...styles.statGrid, ...(isMobile ? styles.mobileStatGrid : null) }}>
               <SummaryStat label="Appearances" value={activePlayer.appearances} sub="weekly contests" />
               <SummaryStat label="Wins" value={activePlayer.wins} sub={`${activePlayer.runnerUps} runner-ups`} />
               <SummaryStat label="Career FG%" value={`${activePlayer.fgPct}%`} sub={`${activePlayer.totalMakes}/${activePlayer.totalAttempts} total`} />
@@ -593,7 +654,7 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer }) {
               <SummaryStat label="0/5 Rounds" value={activePlayer.zeroRounds} sub="all rounds combined" />
             </div>
 
-            <div style={styles.twoColumn}>
+            <div style={{ ...styles.twoColumn, ...(isMobile ? styles.singleColumn : null) }}>
               <section style={styles.panelInset}>
                 <div style={styles.eyebrow}>Career zone chart</div>
                 <h3 style={styles.h3}>All-time shooting zones</h3>
@@ -622,7 +683,7 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer }) {
             <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
               {activePlayer.contests.map((contest) => (
                 <div key={contest.contestId} style={styles.historyCard}>
-                  <button onClick={() => setExpandedContestId(expandedContestId === contest.contestId ? null : contest.contestId)} style={styles.historyToggle}>
+                  <button onClick={() => setExpandedContestId(expandedContestId === contest.contestId ? null : contest.contestId)} style={{ ...styles.historyToggle, ...(isMobile ? styles.historyToggleMobile : null) }}>
                     <span>
                       <strong>{contest.date}</strong>
                       <span style={{ ...styles.muted, display: "block", marginTop: 4 }}>{contest.title} / {contest.finish}</span>
@@ -631,11 +692,26 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer }) {
                   </button>
                   {expandedContestId === contest.contestId && (
                     <div style={styles.historyDetail}>
-                      <div style={styles.roundScoreRow}>
-                        {contest.roundScores.map((score, index) => (
+                      <div style={{ ...styles.roundScoreRow, ...(isMobile ? styles.roundScoreRowMobile : null) }}>
+                        {contest.roundDetails.map((detail, index) => (
                           <div key={ROUND_LABELS[index]} style={styles.roundScoreBox}>
                             <div style={styles.eyebrow}>{ROUND_LABELS[index]}</div>
-                            <strong>{score ?? "-"}</strong>
+                            <strong>{detail.score ?? "-"}</strong>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ ...styles.roundMapGrid, ...(isMobile ? styles.roundMapGridMobile : null) }}>
+                        {contest.roundDetails.map((detail, index) => (
+                          <div key={`${contest.contestId}-${ROUND_LABELS[index]}-map`} style={styles.roundMapCard}>
+                            <div style={styles.eyebrow}>{ROUND_LABELS[index]} shot map</div>
+                            <div style={{ ...styles.muted, marginTop: 4 }}>{detail.raw && detail.raw !== "?????" ? detail.raw : detail.raw === "?????" ? "Sequence not recorded" : "Did not reach round"}</div>
+                            <div style={{ display: "flex", justifyContent: "center", marginTop: 12 }}>
+                              {detail.score !== null ? (
+                                <ShotMap zoneStats={detail.zoneStats} size="sm" />
+                              ) : (
+                                <div style={styles.roundMapEmpty}>No shot map available</div>
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -651,7 +727,7 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer }) {
   );
 }
 
-function RecordsPage({ records }) {
+function RecordsPage({ records, isMobile }) {
   const groups = [
     {
       title: "Winning",
@@ -695,7 +771,7 @@ function RecordsPage({ records }) {
             <h2 style={styles.h2}>{group.title}</h2>
             <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
               {group.items.map(([title, record, suffix]) => (
-                <div key={title} style={styles.recordRow}>
+                <div key={title} style={{ ...styles.recordRow, ...(isMobile ? styles.recordRowMobile : null) }}>
                   <div>
                     <strong>{title}</strong>
                     <div style={styles.muted}>{record.leaders.map((leader) => leader.name).join(", ") || "No data yet"}</div>
@@ -731,6 +807,7 @@ function RecordSnippet({ title, record, suffix = "" }) {
 
 export default function App() {
   const league = useMemo(() => buildLeagueData(CONTESTS), []);
+  const isMobile = useIsMobile();
   const [page, setPage] = useState("home");
   const [activeContestId, setActiveContestId] = useState(league.contests[0]?.id ?? null);
   const [activePlayerName, setActivePlayerName] = useState(league.players[0]?.name ?? null);
@@ -749,19 +826,19 @@ export default function App() {
 
   return (
     <div style={styles.app}>
-      <header style={styles.header}>
-        <div>
-          <div style={styles.brand}>Home of the Mohamed Adem Three Point Contest</div>
-          <div style={styles.headerSub}>Weekly contest archive / all-time leaders / player profiles / records</div>
+      <header style={{ ...styles.header, ...(isMobile ? styles.headerMobile : null) }}>
+        <div style={isMobile ? { width: "100%" } : null}>
+          <div style={{ ...styles.brand, ...(isMobile ? styles.brandMobile : null) }}>Home of the Mohamed Adem Three Point Contest</div>
+          <div style={{ ...styles.headerSub, ...(isMobile ? styles.headerSubMobile : null) }}>Weekly contest archive / all-time leaders / player profiles / records</div>
         </div>
-        <div style={styles.championBadge}>
+        <div style={{ ...styles.championBadge, ...(isMobile ? styles.championBadgeMobile : null) }}>
           <span>Latest Winner</span>
           <strong>🏆 {latestContest.winner}</strong>
           <small>{latestContest.date}</small>
         </div>
       </header>
 
-      <nav style={styles.tabs}>
+      <nav style={{ ...styles.tabs, ...(isMobile ? styles.tabsMobile : null) }}>
         {[
           ["home", "Home"],
           ["contests", "Contests"],
@@ -774,14 +851,14 @@ export default function App() {
         ))}
       </nav>
 
-      <main style={styles.content}>
-        {page === "home" && <HomePage contests={league.contests} players={league.players} records={league.records} onOpenContest={openContest} onOpenPlayer={openPlayer} />}
-        {page === "contests" && <ContestsPage contests={league.contests} activeContestId={activeContestId} onSelectContest={setActiveContestId} />}
-        {page === "players" && <PlayersPage players={league.players} activePlayerName={activePlayerName} onOpenPlayer={openPlayer} />}
-        {page === "records" && <RecordsPage records={league.records} />}
+      <main style={{ ...styles.content, ...(isMobile ? styles.contentMobile : null) }}>
+        {page === "home" && <HomePage contests={league.contests} players={league.players} records={league.records} onOpenContest={openContest} onOpenPlayer={openPlayer} isMobile={isMobile} />}
+        {page === "contests" && <ContestsPage contests={league.contests} activeContestId={activeContestId} onSelectContest={setActiveContestId} isMobile={isMobile} />}
+        {page === "players" && <PlayersPage players={league.players} activePlayerName={activePlayerName} onOpenPlayer={openPlayer} isMobile={isMobile} />}
+        {page === "records" && <RecordsPage records={league.records} isMobile={isMobile} />}
       </main>
 
-      <footer style={styles.footer}>Contest 1 loaded / future weekly contests can be added to the contest list</footer>
+      <footer style={{ ...styles.footer, ...(isMobile ? styles.footerMobile : null) }}>Contest 1 loaded / future weekly contests can be added to the contest list</footer>
     </div>
   );
 }
@@ -802,17 +879,29 @@ const styles = {
     gap: 18,
     flexWrap: "wrap",
   },
+  headerMobile: {
+    padding: "18px 16px",
+    alignItems: "flex-start",
+  },
   brand: {
     fontFamily: "'Bebas Neue', cursive",
     fontSize: 38,
     color: "#F97316",
     lineHeight: 1,
   },
+  brandMobile: {
+    fontSize: 28,
+  },
   headerSub: {
     marginTop: 6,
     color: "rgba(255,255,255,0.36)",
     fontSize: 11,
     textTransform: "uppercase",
+  },
+  headerSubMobile: {
+    fontSize: 10,
+    lineHeight: 1.5,
+    maxWidth: "100%",
   },
   championBadge: {
     display: "grid",
@@ -824,12 +913,24 @@ const styles = {
     padding: "10px 14px",
     background: "rgba(255,255,255,0.04)",
   },
+  championBadgeMobile: {
+    minWidth: "100%",
+    textAlign: "left",
+  },
   tabs: {
     display: "flex",
     gap: 0,
     borderBottom: "1px solid rgba(255,255,255,0.06)",
     padding: "0 32px",
     overflowX: "auto",
+  },
+  tabsMobile: {
+    padding: "0 12px",
+    position: "sticky",
+    top: 0,
+    zIndex: 10,
+    background: "rgba(10,10,10,0.96)",
+    backdropFilter: "blur(12px)",
   },
   tab: {
     padding: "14px 20px",
@@ -854,6 +955,9 @@ const styles = {
   content: {
     padding: "30px 32px 42px",
   },
+  contentMobile: {
+    padding: "18px 16px 28px",
+  },
   hero: {
     display: "flex",
     justifyContent: "space-between",
@@ -861,6 +965,9 @@ const styles = {
     alignItems: "end",
     marginBottom: 24,
     flexWrap: "wrap",
+  },
+  heroMobile: {
+    alignItems: "flex-start",
   },
   heroPanel: {
     border: "1px solid rgba(249,115,22,0.25)",
@@ -945,6 +1052,10 @@ const styles = {
     gap: 16,
     marginBottom: 18,
   },
+  mobileStatGrid: {
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: 12,
+  },
   bigNumber: {
     marginTop: 6,
     fontFamily: "'Bebas Neue', cursive",
@@ -990,6 +1101,10 @@ const styles = {
     padding: "14px 16px",
     cursor: "pointer",
   },
+  historyRowMobile: {
+    gridTemplateColumns: "1fr",
+    gap: 8,
+  },
   rankRow: {
     display: "grid",
     gridTemplateColumns: "28px 1fr auto auto",
@@ -1008,6 +1123,9 @@ const styles = {
     gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
     gap: 18,
   },
+  singleColumn: {
+    gridTemplateColumns: "1fr",
+  },
   contestLayout: {
     display: "grid",
     gridTemplateColumns: "280px minmax(0, 1fr)",
@@ -1019,6 +1137,21 @@ const styles = {
     gridTemplateColumns: "280px minmax(0, 1fr)",
     gap: 18,
     alignItems: "start",
+  },
+  singleColumnLayout: {
+    gridTemplateColumns: "1fr",
+  },
+  listStack: {
+    display: "grid",
+    gap: 8,
+  },
+  mobilePickerRow: {
+    display: "grid",
+    gridAutoFlow: "column",
+    gridAutoColumns: "minmax(220px, 82%)",
+    gap: 8,
+    overflowX: "auto",
+    paddingBottom: 4,
   },
   listButton: {
     display: "grid",
@@ -1123,6 +1256,10 @@ const styles = {
     cursor: "pointer",
     textAlign: "left",
   },
+  historyToggleMobile: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+  },
   historyDetail: {
     padding: "0 16px 16px",
   },
@@ -1131,12 +1268,62 @@ const styles = {
     gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
     gap: 8,
   },
+  roundScoreRowMobile: {
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  },
   roundScoreBox: {
     border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: 8,
     padding: "10px 8px",
     background: "rgba(255,255,255,0.04)",
     textAlign: "center",
+  },
+  roundMapGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: 12,
+    marginTop: 14,
+  },
+  roundMapGridMobile: {
+    gridTemplateColumns: "1fr",
+  },
+  roundMapCard: {
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 8,
+    padding: 14,
+    background: "rgba(255,255,255,0.025)",
+  },
+  roundMapEmpty: {
+    width: "100%",
+    minHeight: 84,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: "1px dashed rgba(255,255,255,0.08)",
+    borderRadius: 8,
+    color: "rgba(255,255,255,0.35)",
+    fontSize: 11,
+  },
+  mobileOverviewList: {
+    display: "grid",
+    gap: 12,
+  },
+  mobileOverviewCard: {
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 8,
+    padding: 14,
+    background: "rgba(255,255,255,0.03)",
+  },
+  mobileOverviewHead: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 12,
+    alignItems: "flex-start",
+    marginBottom: 12,
+  },
+  mobileOverviewStats: {
+    display: "grid",
+    gap: 8,
   },
   recordRow: {
     display: "flex",
@@ -1147,6 +1334,10 @@ const styles = {
     border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: 8,
     background: "rgba(255,255,255,0.035)",
+  },
+  recordRowMobile: {
+    flexDirection: "column",
+    alignItems: "flex-start",
   },
   recordValue: {
     fontFamily: "'Bebas Neue', cursive",
@@ -1160,5 +1351,9 @@ const styles = {
     color: "rgba(255,255,255,0.25)",
     fontSize: 10,
     textTransform: "uppercase",
+  },
+  footerMobile: {
+    padding: "14px 16px",
+    lineHeight: 1.5,
   },
 };

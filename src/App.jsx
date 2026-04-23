@@ -16,7 +16,7 @@ const CONTESTS = [
     rawData: {
       Abdiaziz: { r1: "00000", r2: null, r3: null, r4: null, r5: null, eliminated: 1 },
       "Mohamed Abdisalan": { r1: "01110", r2: "01100", r3: "00111", r4: "11001", r5: "00011", eliminated: 6, winner: true },
-      "Mohamed Omar": { r1: "10100", r2: "?????", r3: "00100", r4: null, r5: null, eliminated: 3 },
+      "Mohamed Omar": { r1: "10100", r2: { score: 2, zonesKnown: false }, r3: "00100", r4: null, r5: null, eliminated: 3 },
       "Mohamed Ahmed": { r1: "10010", r2: "10100", r3: "00000", r4: null, r5: null, eliminated: 3 },
       "Mohamed Adem": { r1: "00001", r2: null, r3: null, r4: null, r5: null, eliminated: 1, sdElim: true },
       Muhsin: { r1: "10000", r2: "00000", r3: null, r4: null, r5: null, eliminated: 2 },
@@ -49,6 +49,7 @@ function parseShots(str) {
 
 function sumRound(round) {
   if (!round || round === "?????") return null;
+  if (typeof round === "object") return round.score ?? null;
   return parseShots(round).reduce((total, shot) => total + shot, 0);
 }
 
@@ -61,10 +62,20 @@ function buildRoundDetail(round) {
     };
   }
 
+  if (typeof round === "object") {
+    return {
+      raw: null,
+      score: round.score ?? null,
+      zonesKnown: false,
+      zoneStats: ZONES.map(() => ({ makes: 0, attempts: 0 })),
+    };
+  }
+
   const shots = parseShots(round);
   return {
     raw: round,
     score: shots.reduce((total, shot) => total + shot, 0),
+    zonesKnown: true,
     zoneStats: shots.map((shot) => ({ makes: shot, attempts: 1 })),
   };
 }
@@ -88,6 +99,12 @@ function computeContestPlayerStats(name, data) {
 
   rounds.forEach((round) => {
     if (!round || round === "?????") return;
+    if (typeof round === "object") {
+      totalAttempts += 5;
+      totalMakes += round.score ?? 0;
+      if ((round.score ?? 0) === 0) zeroRounds += 1;
+      return;
+    }
     const shots = parseShots(round);
     const roundMakes = shots.reduce((sum, shot, index) => {
       zoneStats[index].attempts += 1;
@@ -704,12 +721,20 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
                         {contest.roundDetails.map((detail, index) => (
                           <div key={`${contest.contestId}-${ROUND_LABELS[index]}-map`} style={styles.roundMapCard}>
                             <div style={styles.eyebrow}>{ROUND_LABELS[index]} shot map</div>
-                            <div style={{ ...styles.muted, marginTop: 4 }}>{detail.raw && detail.raw !== "?????" ? detail.raw : detail.raw === "?????" ? "Sequence not recorded" : "Did not reach round"}</div>
+                            <div style={{ ...styles.muted, marginTop: 4 }}>
+                              {detail.raw
+                                ? detail.raw
+                                : detail.score !== null && detail.zonesKnown === false
+                                  ? `${detail.score} makes / zones unknown`
+                                  : "Did not reach round"}
+                            </div>
                             <div style={{ display: "flex", justifyContent: "center", marginTop: 12 }}>
-                              {detail.score !== null ? (
+                              {detail.score !== null && detail.zonesKnown !== false ? (
                                 <ShotMap zoneStats={detail.zoneStats} size="sm" />
                               ) : (
-                                <div style={styles.roundMapEmpty}>No shot map available</div>
+                                <div style={styles.roundMapEmpty}>
+                                  {detail.score !== null ? "Shot map unavailable" : "No shot map available"}
+                                </div>
                               )}
                             </div>
                           </div>

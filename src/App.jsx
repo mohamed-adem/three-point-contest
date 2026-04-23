@@ -1,60 +1,68 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 
 const ZONES = ["LC", "LW", "TK", "RW", "RC"];
 const ZONE_LABELS = ["Left Corner", "Left Wing", "Top Key", "Right Wing", "Right Corner"];
+const ROUNDS = ["R1", "R2", "R3", "R4", "Final"];
 
-const parseShots = (str) => str.split("").map(Number);
+const contests = [
+  {
+    id: "contest-1",
+    title: "Contest 1",
+    date: "April 22, 2026",
+    label: "April 22, 2026 Contest 1",
+    winner: "Mohamed Abdisalan",
+    runnerUp: "Yahya",
+    rawData: {
+      Abdiaziz: { r1: "00000", r2: null, r3: null, r4: null, r5: null, eliminated: 1 },
+      "Mohamed Abdisalan": { r1: "01110", r2: "01100", r3: "00111", r4: "11001", r5: "00011", eliminated: 6, winner: true },
+      "Mohamed Omar": { r1: "10100", r2: "?????", r3: "00100", r4: null, r5: null, eliminated: 3 },
+      "Mohamed Ahmed": { r1: "10010", r2: "10100", r3: "00000", r4: null, r5: null, eliminated: 3 },
+      "Mohamed Adem": { r1: "00001", r2: null, r3: null, r4: null, r5: null, eliminated: 1, sdElim: true },
+      Muhsin: { r1: "10000", r2: "00000", r3: null, r4: null, r5: null, eliminated: 2 },
+      "Ahmed-Suhaib": { r1: "01000", r2: "10100", r3: "00011", r4: "10000", r5: null, eliminated: 4 },
+      Abdimanan: { r1: "00000", r2: null, r3: null, r4: null, r5: null, eliminated: 1 },
+      Sabre: { r1: "00000", r2: null, r3: null, r4: null, r5: null, eliminated: 1 },
+      Abdisalan: { r1: "01010", r2: "11000", r3: "11010", r4: "01100", r5: null, eliminated: 4 },
+      Yahya: { r1: "01000", r2: "00001", r3: "10100", r4: "11011", r5: "00010", eliminated: 5 },
+      "Mohamed Salad": { r1: "10000", r2: "10000", r3: null, r4: null, r5: null, eliminated: 2, sdElim: true },
+    },
+    suddenDeath: {
+      "Round 1": [
+        { player: "Ahmed-Suhaib", attempts: 2, made: true },
+        { player: "Yahya", attempts: 2, made: true },
+        { player: "Mohamed Salad", attempts: 4, made: true },
+        { player: "Muhsin", attempts: 14, made: true },
+        { player: "Mohamed Adem", attempts: 14, made: false },
+      ],
+      "Round 2": [
+        { player: "Yahya", attempts: 7, made: true },
+        { player: "Mohamed Salad", attempts: 7, made: false },
+      ],
+    },
+  },
+];
 
-const rawData = {
-  Abdiaziz: { r1: "00000", r2: null, r3: null, r4: null, r5: null, eliminated: 1 },
-  "Mohamed Abdisalan": { r1: "01110", r2: "01100", r3: "00111", r4: "11001", r5: "00011", eliminated: 6, winner: true },
-  "Mohamed Omar": { r1: "10100", r2: "?????", r3: "00100", r4: null, r5: null, eliminated: 3 },
-  "Mohamed Ahmed": { r1: "10010", r2: "10100", r3: "00000", r4: null, r5: null, eliminated: 3 },
-  "Mohamed Adem": { r1: "00001", r2: null, r3: null, r4: null, r5: null, eliminated: 1, sdElim: true },
-  Muhsin: { r1: "10000", r2: "00000", r3: null, r4: null, r5: null, eliminated: 2 },
-  "Ahmed-Suhaib": { r1: "01000", r2: "10100", r3: "00011", r4: "10000", r5: null, eliminated: 4 },
-  Abdimanan: { r1: "00000", r2: null, r3: null, r4: null, r5: null, eliminated: 1 },
-  Sabre: { r1: "00000", r2: null, r3: null, r4: null, r5: null, eliminated: 1 },
-  Abdisalan: { r1: "01010", r2: "11000", r3: "11010", r4: "01100", r5: null, eliminated: 4 },
-  Yahya: { r1: "01000", r2: "00001", r3: "10100", r4: "11011", r5: "00010", eliminated: 5 },
-  "Mohamed Salad": { r1: "10000", r2: "10000", r3: null, r4: null, r5: null, eliminated: 2, sdElim: true },
-};
-
-const SD_DATA = {
-  "Round 1": [
-    { player: "Ahmed-Suhaib", attempts: 2, made: true },
-    { player: "Yahya", attempts: 2, made: true },
-    { player: "Mohamed Salad", attempts: 4, made: true },
-    { player: "Muhsin", attempts: 14, made: true },
-    { player: "Mohamed Adem", attempts: 14, made: false },
-  ],
-  "Round 2": [
-    { player: "Yahya", attempts: 7, made: true },
-    { player: "Mohamed Salad", attempts: 7, made: false },
-  ],
-};
+function parseShots(str) {
+  return str.split("").map(Number);
+}
 
 function computePlayerStats(name, data) {
   const rounds = [data.r1, data.r2, data.r3, data.r4, data.r5];
   const validRounds = rounds.filter((round) => round && round !== "?????");
-
+  const zoneStats = ZONES.map(() => ({ makes: 0, attempts: 0 }));
   let totalMakes = 0;
   let totalAttempts = 0;
-  const zoneStats = ZONES.map(() => ({ makes: 0, attempts: 0 }));
   let zeros = 0;
 
   validRounds.forEach((round) => {
     const shots = parseShots(round);
-    let roundMakes = 0;
-
-    shots.forEach((shot, index) => {
+    const roundMakes = shots.reduce((total, shot, index) => {
       zoneStats[index].attempts += 1;
       zoneStats[index].makes += shot;
       totalAttempts += 1;
       totalMakes += shot;
-      roundMakes += shot;
-    });
-
+      return total + shot;
+    }, 0);
     if (roundMakes === 0) zeros += 1;
   });
 
@@ -62,93 +70,79 @@ function computePlayerStats(name, data) {
     if (!round || round === "?????") return null;
     return parseShots(round).reduce((total, shot) => total + shot, 0);
   });
-
-  const validScores = roundScores.filter((score) => score !== null);
-  const avg = validScores.length
-    ? (validScores.reduce((total, score) => total + score, 0) / validScores.length).toFixed(2)
-    : "-";
-  const best = validScores.length ? Math.max(...validScores) : 0;
-  const pct = totalAttempts ? Math.round((totalMakes / totalAttempts) * 100) : 0;
+  const knownScores = roundScores.filter((score) => score !== null);
 
   return {
     name,
     totalMakes,
     totalAttempts,
-    pct,
-    avg,
-    best,
+    pct: totalAttempts ? Math.round((totalMakes / totalAttempts) * 100) : 0,
+    avg: knownScores.length ? (knownScores.reduce((sum, score) => sum + score, 0) / knownScores.length).toFixed(2) : "-",
+    best: knownScores.length ? Math.max(...knownScores) : 0,
     zeros,
     zoneStats,
     roundScores,
     roundsPlayed: validRounds.length,
     eliminated: data.eliminated,
-    winner: data.winner || false,
-    sdElim: data.sdElim || false,
+    winner: Boolean(data.winner),
   };
 }
 
-const allStats = Object.entries(rawData).map(([name, data]) => computePlayerStats(name, data));
-const sortedByPlacement = [...allStats].sort((a, b) => b.eliminated - a.eliminated);
+function getContestStats(contest) {
+  const players = Object.entries(contest.rawData).map(([name, data]) => computePlayerStats(name, data));
+  const sorted = [...players].sort((a, b) => b.eliminated - a.eliminated || b.totalMakes - a.totalMakes);
+  const totalMakes = players.reduce((sum, player) => sum + player.totalMakes, 0);
+  const totalAttempts = players.reduce((sum, player) => sum + player.totalAttempts, 0);
+  const mostMakes = players.reduce((leader, player) => (player.totalMakes > leader.totalMakes ? player : leader), players[0]);
+
+  return {
+    players,
+    sorted,
+    totalMakes,
+    totalAttempts,
+    overallPct: totalAttempts ? Math.round((totalMakes / totalAttempts) * 100) : 0,
+    mostMakes,
+    perfectRounds: players.reduce((sum, player) => sum + player.roundScores.filter((score) => score === 5).length, 0),
+  };
+}
+
+function finishLabel(player) {
+  if (player.winner) return "Winner";
+  if (player.eliminated === 5) return "Runner-up";
+  if (player.eliminated === 4) return "Top 4";
+  if (player.eliminated === 3) return "Top 6";
+  if (player.eliminated === 2) return "Top 8";
+  return "R1 Exit";
+}
 
 function ShotMap({ zoneStats, size = "md" }) {
-  const s = size === "sm" ? 0.65 : 1;
-  const w = 220 * s;
-  const h = 130 * s;
-  const zones = [
-    { x: 10 * s, y: 50 * s, label: "LC" },
-    { x: 50 * s, y: 20 * s, label: "LW" },
-    { x: 95 * s, y: 8 * s, label: "TK" },
-    { x: 140 * s, y: 20 * s, label: "RW" },
-    { x: 180 * s, y: 50 * s, label: "RC" },
+  const scale = size === "sm" ? 0.65 : 1;
+  const width = 220 * scale;
+  const height = 130 * scale;
+  const points = [
+    { x: 10 * scale, y: 50 * scale, label: "LC" },
+    { x: 50 * scale, y: 20 * scale, label: "LW" },
+    { x: 95 * scale, y: 8 * scale, label: "TK" },
+    { x: 140 * scale, y: 20 * scale, label: "RW" },
+    { x: 180 * scale, y: 50 * scale, label: "RC" },
   ];
 
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
-      <path
-        d={`M ${10 * s} ${115 * s} Q ${110 * s} ${-20 * s} ${210 * s} ${115 * s}`}
-        fill="none"
-        stroke="rgba(255,255,255,0.08)"
-        strokeWidth={1.5 * s}
-      />
-      <line x1={0} y1={115 * s} x2={w} y2={115 * s} stroke="rgba(255,255,255,0.08)" strokeWidth={s} />
-
-      {zones.map((zone, index) => {
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ maxWidth: "100%", height: "auto" }}>
+      <path d={`M ${10 * scale} ${115 * scale} Q ${110 * scale} ${-20 * scale} ${210 * scale} ${115 * scale}`} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={1.5 * scale} />
+      <line x1={0} y1={115 * scale} x2={width} y2={115 * scale} stroke="rgba(255,255,255,0.1)" strokeWidth={scale} />
+      {points.map((point, index) => {
         const stat = zoneStats[index];
         const pct = stat.attempts ? stat.makes / stat.attempts : 0;
-        const color = stat.attempts === 0
-          ? "#333"
-          : pct === 0
-            ? "#c0392b"
-            : pct < 0.4
-              ? "#e67e22"
-              : pct < 0.7
-                ? "#f1c40f"
-                : "#2ecc71";
-        const r = (14 + pct * 8) * s;
-
+        const color = stat.attempts === 0 ? "#333" : pct === 0 ? "#c0392b" : pct < 0.4 ? "#e67e22" : pct < 0.7 ? "#f1c40f" : "#2ecc71";
         return (
-          <g key={zone.label}>
-            <circle cx={zone.x + 15 * s} cy={zone.y + 15 * s} r={r} fill={color} opacity={0.85} />
-            <text
-              x={zone.x + 15 * s}
-              y={zone.y + 15 * s - 2 * s}
-              textAnchor="middle"
-              fill="white"
-              fontSize={9 * s}
-              fontWeight="700"
-              fontFamily="'DM Mono', monospace"
-            >
+          <g key={point.label}>
+            <circle cx={point.x + 15 * scale} cy={point.y + 15 * scale} r={(14 + pct * 8) * scale} fill={color} opacity={0.88} />
+            <text x={point.x + 15 * scale} y={point.y + 15 * scale - 2 * scale} textAnchor="middle" fill="white" fontSize={9 * scale} fontWeight="700">
               {stat.attempts ? `${stat.makes}/${stat.attempts}` : "-"}
             </text>
-            <text
-              x={zone.x + 15 * s}
-              y={zone.y + 15 * s + 8 * s}
-              textAnchor="middle"
-              fill="rgba(255,255,255,0.7)"
-              fontSize={7.5 * s}
-              fontFamily="'DM Mono', monospace"
-            >
-              {zone.label}
+            <text x={point.x + 15 * scale} y={point.y + 15 * scale + 8 * scale} textAnchor="middle" fill="rgba(255,255,255,0.68)" fontSize={7.5 * scale}>
+              {point.label}
             </text>
           </g>
         );
@@ -157,486 +151,628 @@ function ShotMap({ zoneStats, size = "md" }) {
   );
 }
 
-function BracketView() {
-  const rounds = [
-    { label: "Round 1" },
-    { label: "Round 2" },
-    { label: "Round 3" },
-    { label: "Round 4" },
-    { label: "Final" },
-  ];
-
-  const roundPlayers = {
-    "Round 1": sortedByPlacement.map((player) => player.name),
-    "Round 2": sortedByPlacement.filter((player) => player.eliminated >= 2).map((player) => player.name),
-    "Round 3": sortedByPlacement.filter((player) => player.eliminated >= 3).map((player) => player.name),
-    "Round 4": sortedByPlacement.filter((player) => player.eliminated >= 4).map((player) => player.name),
-    Final: sortedByPlacement.filter((player) => player.eliminated >= 5).map((player) => player.name),
-  };
-
+function StatCard({ label, value, sub }) {
   return (
-    <div style={{ overflowX: "auto", paddingBottom: 12 }}>
-      <div style={{ display: "flex", gap: 0, minWidth: 700 }}>
-        {rounds.map((round, roundIndex) => (
-          <div key={round.label} style={{ flex: 1, minWidth: 130 }}>
-            <div style={{
-              textAlign: "center",
-              fontSize: 10,
-              fontFamily: "'DM Mono', monospace",
-              color: "#F97316",
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              padding: "8px 0 12px",
-              borderBottom: "1px solid rgba(249,115,22,0.3)",
-              marginBottom: 12,
-            }}>
-              {round.label}
-            </div>
-            {roundPlayers[round.label].map((name) => {
-              const player = allStats.find((entry) => entry.name === name);
-              const eliminated = player.eliminated === roundIndex + 1;
-              const isWinner = player.winner && roundIndex === 4;
-
-              return (
-                <div key={name} style={{
-                  margin: "4px 6px",
-                  padding: "6px 10px",
-                  borderRadius: 6,
-                  fontSize: 11,
-                  fontFamily: "'DM Mono', monospace",
-                  background: isWinner
-                    ? "rgba(249,115,22,0.25)"
-                    : eliminated
-                      ? "rgba(255,255,255,0.04)"
-                      : "rgba(255,255,255,0.08)",
-                  color: isWinner
-                    ? "#F97316"
-                    : eliminated
-                      ? "rgba(255,255,255,0.3)"
-                      : "rgba(255,255,255,0.85)",
-                  border: isWinner
-                    ? "1px solid rgba(249,115,22,0.5)"
-                    : eliminated
-                      ? "1px solid rgba(255,255,255,0.06)"
-                      : "1px solid rgba(255,255,255,0.1)",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  textDecoration: eliminated ? "line-through" : "none",
-                }}>
-                  <span>{isWinner ? "🏆 " : ""}{name}</span>
-                  {player.roundScores[roundIndex] !== null && player.roundScores[roundIndex] !== undefined && (
-                    <span style={{ color: "#F97316", opacity: 0.8, fontWeight: 700 }}>
-                      {player.roundScores[roundIndex]}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
+    <div style={styles.card}>
+      <div style={styles.eyebrow}>{label}</div>
+      <div style={styles.bigNumber}>{value}</div>
+      <div style={styles.muted}>{sub}</div>
     </div>
   );
 }
 
-function OverallStats() {
-  const [sortKey, setSortKey] = useState("eliminated");
-  const sorted = [...allStats].sort((a, b) => {
-    if (sortKey === "eliminated") return b.eliminated - a.eliminated;
-    if (sortKey === "pct") return b.pct - a.pct;
+function Home({ contestsWithStats, onOpenContest }) {
+  const winnerCounts = contestsWithStats.reduce((acc, entry) => {
+    acc[entry.contest.winner] = (acc[entry.contest.winner] || 0) + 1;
+    return acc;
+  }, {});
+
+  return (
+    <div>
+      <div style={styles.hero}>
+        <div>
+          <div style={styles.eyebrow}>Home</div>
+          <h1 style={styles.h1}>Mohamed Adem Three Point Contest</h1>
+        </div>
+        <div style={styles.heroStat}>
+          <span>Contests</span>
+          <strong>{contestsWithStats.length}</strong>
+        </div>
+      </div>
+
+      <section style={styles.panel}>
+        <div style={styles.sectionHead}>
+          <div>
+            <div style={styles.eyebrow}>All-time results</div>
+            <h2 style={styles.h2}>Winners and runner-ups</h2>
+          </div>
+        </div>
+        <div style={{ display: "grid", gap: 10 }}>
+          {contestsWithStats.map(({ contest, stats }) => (
+            <button key={contest.id} onClick={() => onOpenContest(contest.id)} style={styles.resultRow}>
+              <span style={{ color: "rgba(255,255,255,0.55)" }}>{contest.label}</span>
+              <strong>🏆 {contest.winner}</strong>
+              <span>Runner-up: {contest.runnerUp}</span>
+              <span>{stats.overallPct}% field / {stats.totalMakes}/{stats.totalAttempts}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section style={styles.panel}>
+        <div style={styles.sectionHead}>
+          <div>
+            <div style={styles.eyebrow}>Title count</div>
+            <h2 style={styles.h2}>Early leaderboard</h2>
+          </div>
+        </div>
+        <div style={styles.titleGrid}>
+          {Object.entries(winnerCounts).map(([name, titles]) => (
+            <div key={name} style={styles.card}>
+              <div style={styles.eyebrow}>Champion</div>
+              <div style={{ ...styles.h2, color: "#F97316" }}>{name}</div>
+              <div style={styles.muted}>{titles} title{titles === 1 ? "" : "s"}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ContestOverview({ contest, stats }) {
+  const [sortKey, setSortKey] = useState("finish");
+  const sorted = [...stats.players].sort((a, b) => {
+    if (sortKey === "finish") return b.eliminated - a.eliminated || b.totalMakes - a.totalMakes;
+    if (sortKey === "pct") return b.pct - a.pct || b.totalMakes - a.totalMakes;
     if (sortKey === "avg") return Number.parseFloat(b.avg) - Number.parseFloat(a.avg);
     if (sortKey === "best") return b.best - a.best;
     return 0;
   });
 
-  const placementLabel = (player) => {
-    if (player.winner) return "Winner";
-    if (player.eliminated === 5) return "Runner-up";
-    if (player.eliminated === 4) return "Top 4";
-    if (player.eliminated === 3) return "Top 6";
-    if (player.eliminated === 2) return "Top 8";
-    return "R1 Exit";
+  return (
+    <div>
+      <div style={styles.statGrid}>
+        <StatCard label="Players" value={stats.players.length} sub={contest.title} />
+        <StatCard label="Overall FG%" value={`${stats.overallPct}%`} sub={`${stats.totalMakes}/${stats.totalAttempts} all rounds`} />
+        <StatCard label="Most Makes" value={stats.mostMakes.totalMakes} sub={stats.mostMakes.name} />
+        <StatCard label="Perfect Rounds" value={stats.perfectRounds} sub="5/5 rounds" />
+      </div>
+      <section style={styles.panel}>
+        <div style={styles.segmented}>
+          {[
+            ["finish", "Finish"],
+            ["pct", "FG%"],
+            ["avg", "Avg"],
+            ["best", "Best"],
+          ].map(([key, label]) => (
+            <button key={key} onClick={() => setSortKey(key)} style={sortKey === key ? styles.segmentActive : styles.segment}>
+              Sort: {label}
+            </button>
+          ))}
+        </div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                {["#", "Player", "Finish", "Rounds", "Makes", "FG%", "Avg/Rd", "Best", "0/5s"].map((heading) => <th key={heading} style={styles.th}>{heading}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map((player, index) => (
+                <tr key={player.name}>
+                  <td style={styles.td}>{index + 1}</td>
+                  <td style={{ ...styles.td, color: player.winner ? "#F97316" : "white", fontWeight: 700 }}>{player.winner ? "🏆 " : ""}{player.name}</td>
+                  <td style={styles.td}>{finishLabel(player)}</td>
+                  <td style={styles.td}>{player.roundsPlayed}</td>
+                  <td style={styles.td}>{player.totalMakes}/{player.totalAttempts}</td>
+                  <td style={{ ...styles.td, color: player.pct >= 50 ? "#2ecc71" : player.pct >= 30 ? "#f1c40f" : "#e74c3c", fontWeight: 700 }}>{player.pct}%</td>
+                  <td style={styles.td}>{player.avg}</td>
+                  <td style={{ ...styles.td, color: "#F97316", fontWeight: 700 }}>{player.best}</td>
+                  <td style={{ ...styles.td, color: player.zeros ? "#e74c3c" : "rgba(255,255,255,0.45)" }}>{player.zeros}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function BracketView({ stats, suddenDeath }) {
+  const rounds = ["Round 1", "Round 2", "Round 3", "Round 4", "Final"];
+  const roundPlayers = {
+    "Round 1": stats.sorted.map((player) => player.name),
+    "Round 2": stats.sorted.filter((player) => player.eliminated >= 2).map((player) => player.name),
+    "Round 3": stats.sorted.filter((player) => player.eliminated >= 3).map((player) => player.name),
+    "Round 4": stats.sorted.filter((player) => player.eliminated >= 4).map((player) => player.name),
+    Final: stats.sorted.filter((player) => player.eliminated >= 5).map((player) => player.name),
   };
 
   return (
     <div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-        {[
-          { key: "eliminated", label: "Round" },
-          { key: "pct", label: "FG%" },
-          { key: "avg", label: "Avg" },
-          { key: "best", label: "Best" },
-        ].map((column) => (
-          <button key={column.key} onClick={() => setSortKey(column.key)} style={{
-            padding: "4px 14px",
-            borderRadius: 20,
-            fontSize: 11,
-            fontFamily: "'DM Mono', monospace",
-            cursor: "pointer",
-            border: "1px solid",
-            borderColor: sortKey === column.key ? "#F97316" : "rgba(255,255,255,0.15)",
-            background: sortKey === column.key ? "rgba(249,115,22,0.15)" : "transparent",
-            color: sortKey === column.key ? "#F97316" : "rgba(255,255,255,0.5)",
-          }}>
-            Sort: {column.label}
-          </button>
-        ))}
-      </div>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, fontFamily: "'DM Mono', monospace" }}>
-          <thead>
-            <tr style={{ borderBottom: "1px solid rgba(249,115,22,0.3)" }}>
-              {["#", "Player", "Finish", "Rounds", "Makes", "FG%", "Avg/Rd", "Best", "0/5s"].map((heading) => (
-                <th key={heading} style={{ padding: "8px 12px", textAlign: "left", color: "rgba(255,255,255,0.4)", fontWeight: 400, fontSize: 10 }}>
-                  {heading}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((player, index) => (
-              <tr key={player.name} style={{
-                borderBottom: "1px solid rgba(255,255,255,0.05)",
-                background: index % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent",
-              }}>
-                <td style={{ padding: "10px 12px", color: "rgba(255,255,255,0.3)" }}>{index + 1}</td>
-                <td style={{ padding: "10px 12px", color: player.winner ? "#F97316" : "white", fontWeight: player.winner ? 700 : 400 }}>
-                  {player.winner ? "🏆 " : ""}{player.name}
-                </td>
-                <td style={{ padding: "10px 12px", color: "rgba(255,255,255,0.6)", fontSize: 10 }}>{placementLabel(player)}</td>
-                <td style={{ padding: "10px 12px", color: "rgba(255,255,255,0.6)" }}>{player.roundsPlayed}</td>
-                <td style={{ padding: "10px 12px", color: "rgba(255,255,255,0.6)" }}>{player.totalMakes}/{player.totalAttempts}</td>
-                <td style={{ padding: "10px 12px", color: player.pct >= 50 ? "#2ecc71" : player.pct >= 30 ? "#f1c40f" : "#e74c3c", fontWeight: 700 }}>
-                  {player.pct}%
-                </td>
-                <td style={{ padding: "10px 12px", color: "rgba(255,255,255,0.7)" }}>{player.avg}</td>
-                <td style={{ padding: "10px 12px", color: "#F97316", fontWeight: 700 }}>{player.best}</td>
-                <td style={{ padding: "10px 12px", color: player.zeros > 0 ? "#e74c3c" : "rgba(255,255,255,0.3)" }}>{player.zeros}</td>
-              </tr>
+      <section style={styles.panel}>
+        <div style={{ overflowX: "auto" }}>
+          <div style={styles.bracket}>
+            {rounds.map((round, roundIndex) => (
+              <div key={round}>
+                <div style={styles.bracketTitle}>{round}</div>
+                {roundPlayers[round].map((name) => {
+                  const player = stats.players.find((entry) => entry.name === name);
+                  const eliminated = player.eliminated === roundIndex + 1;
+                  const isWinner = player.winner && round === "Final";
+                  return (
+                    <div key={name} style={{
+                      ...styles.bracketPlayer,
+                      color: isWinner ? "#F97316" : eliminated ? "rgba(255,255,255,0.3)" : "white",
+                      borderColor: isWinner ? "rgba(249,115,22,0.55)" : "rgba(255,255,255,0.1)",
+                      background: isWinner ? "rgba(249,115,22,0.18)" : "rgba(255,255,255,0.045)",
+                      textDecoration: eliminated ? "line-through" : "none",
+                    }}>
+                      <span>{isWinner ? "🏆 " : ""}{name}</span>
+                      {player.roundScores[roundIndex] !== null && <strong>{player.roundScores[roundIndex]}</strong>}
+                    </div>
+                  );
+                })}
+              </div>
             ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function ZoneBreakdown() {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(150px, 1fr))", gap: 12 }}>
-      {ZONES.map((zone, zoneIndex) => {
-        const zoneLeaders = allStats
-          .map((player) => ({
-            name: player.name,
-            makes: player.zoneStats[zoneIndex].makes,
-            attempts: player.zoneStats[zoneIndex].attempts,
-            pct: player.zoneStats[zoneIndex].attempts
-              ? Math.round((player.zoneStats[zoneIndex].makes / player.zoneStats[zoneIndex].attempts) * 100)
-              : 0,
-          }))
-          .filter((player) => player.attempts > 0)
-          .sort((a, b) => b.pct - a.pct);
-
-        const totalMakes = zoneLeaders.reduce((total, player) => total + player.makes, 0);
-        const totalAttempts = zoneLeaders.reduce((total, player) => total + player.attempts, 0);
-        const overallPct = totalAttempts ? Math.round((totalMakes / totalAttempts) * 100) : 0;
-        const color = overallPct >= 40 ? "#2ecc71" : overallPct >= 25 ? "#f1c40f" : "#e74c3c";
-
-        return (
-          <div key={zone} style={{
-            background: "rgba(255,255,255,0.04)",
-            borderRadius: 12,
-            border: "1px solid rgba(255,255,255,0.08)",
-            padding: 16,
-          }}>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: 2, marginBottom: 4 }}>{zone}</div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 8 }}>{ZONE_LABELS[zoneIndex]}</div>
-            <div style={{ fontSize: 26, fontFamily: "'Bebas Neue', cursive", color, marginBottom: 8 }}>{overallPct}%</div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>{totalMakes}/{totalAttempts} overall</div>
-            <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 10 }}>
-              {zoneLeaders.slice(0, 3).map((player, index) => (
-                <div key={player.name} style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ fontSize: 10, color: index === 0 ? "#F97316" : "rgba(255,255,255,0.5)" }}>
-                    {index === 0 ? "^ " : ""}{player.name.split(" ")[0]}
-                  </span>
-                  <span style={{ fontSize: 10, color: index === 0 ? "#F97316" : "rgba(255,255,255,0.4)" }}>{player.pct}%</span>
+          </div>
+        </div>
+      </section>
+      <section style={styles.panel}>
+        <div style={styles.eyebrow}>Sudden death</div>
+        <h2 style={styles.h2}>Tiebreakers</h2>
+        {Object.entries(suddenDeath).map(([round, players]) => (
+          <div key={round} style={{ marginTop: 16 }}>
+            <div style={{ ...styles.eyebrow, color: "#F97316" }}>{round}</div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 10 }}>
+              {players.map((player) => (
+                <div key={player.player} style={{
+                  ...styles.sdPill,
+                  color: player.made ? "#2ecc71" : "#e74c3c",
+                  borderColor: player.made ? "rgba(46,204,113,0.35)" : "rgba(231,76,60,0.35)",
+                }}>
+                  {player.player} / {player.made ? `made on ${player.attempts}` : `0/${player.attempts}`}
                 </div>
               ))}
             </div>
           </div>
-        );
-      })}
+        ))}
+      </section>
     </div>
   );
 }
 
-function PlayerProfile({ player }) {
-  const p = allStats.find((entry) => entry.name === player);
-  if (!p) return null;
-
-  const roundLabels = ["R1", "R2", "R3", "R4", "Final"];
-  const placementLabel = () => {
-    if (p.winner) return "Champion";
-    if (p.eliminated === 5) return "Runner-up";
-    if (p.eliminated === 4) return "Top 4";
-    if (p.eliminated === 3) return "Top 6";
-    if (p.eliminated === 2) return "Top 8";
-    return "Round 1 Exit";
-  };
+function ZonesView({ stats }) {
+  const combinedZones = ZONES.map((_, zoneIndex) => ({
+    makes: stats.players.reduce((sum, player) => sum + player.zoneStats[zoneIndex].makes, 0),
+    attempts: stats.players.reduce((sum, player) => sum + player.zoneStats[zoneIndex].attempts, 0),
+  }));
 
   return (
-    <div style={{
-      background: "rgba(255,255,255,0.03)",
-      borderRadius: 16,
-      border: p.winner ? "1px solid rgba(249,115,22,0.4)" : "1px solid rgba(255,255,255,0.08)",
-      padding: 24,
-      height: "100%",
-    }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
-        <div>
-          <div style={{ fontSize: 22, fontFamily: "'Bebas Neue', cursive", letterSpacing: 2, color: p.winner ? "#F97316" : "white", lineHeight: 1 }}>
-            {p.name}
-          </div>
-          <div style={{ fontSize: 10, letterSpacing: 2, color: p.winner ? "#F97316" : "rgba(255,255,255,0.4)", marginTop: 4 }}>
-            {placementLabel()}
-          </div>
+    <div>
+      <section style={styles.panel}>
+        <div style={styles.eyebrow}>Field overview</div>
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
+          <ShotMap zoneStats={combinedZones} />
         </div>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 36, fontFamily: "'Bebas Neue', cursive", color: "#F97316", lineHeight: 1 }}>{p.pct}%</div>
-          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>FG%</div>
-        </div>
+      </section>
+      <div style={styles.zoneGrid}>
+        {ZONES.map((zone, zoneIndex) => {
+          const total = combinedZones[zoneIndex];
+          const pct = total.attempts ? Math.round((total.makes / total.attempts) * 100) : 0;
+          return (
+            <div key={zone} style={styles.card}>
+              <div style={styles.eyebrow}>{zone}</div>
+              <div style={styles.muted}>{ZONE_LABELS[zoneIndex]}</div>
+              <div style={{ ...styles.bigNumber, color: pct >= 40 ? "#2ecc71" : pct >= 25 ? "#f1c40f" : "#e74c3c" }}>{pct}%</div>
+              <div style={styles.muted}>{total.makes}/{total.attempts} overall</div>
+            </div>
+          );
+        })}
       </div>
+    </div>
+  );
+}
 
-      <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}>
-        <ShotMap zoneStats={p.zoneStats} size="sm" />
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 16 }}>
-        {[
-          { label: "Makes", val: p.totalMakes },
-          { label: "Avg/Rd", val: p.avg },
-          { label: "Best", val: p.best },
-          { label: "0/5s", val: p.zeros },
-        ].map((stat) => (
-          <div key={stat.label} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "8px 6px", textAlign: "center" }}>
-            <div style={{ fontSize: 16, fontFamily: "'Bebas Neue', cursive", color: "white" }}>{stat.val}</div>
-            <div style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", letterSpacing: 1 }}>{stat.label}</div>
+function PlayerCards({ stats }) {
+  return (
+    <div style={styles.playerGrid}>
+      {stats.sorted.map((player) => (
+        <div key={player.name} style={{ ...styles.card, borderColor: player.winner ? "rgba(249,115,22,0.45)" : "rgba(255,255,255,0.08)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 16, marginBottom: 16 }}>
+            <div>
+              <h3 style={{ ...styles.h2, color: player.winner ? "#F97316" : "white" }}>{player.winner ? "🏆 " : ""}{player.name}</h3>
+              <div style={styles.eyebrow}>{finishLabel(player)}</div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={styles.bigNumber}>{player.pct}%</div>
+              <div style={styles.muted}>FG%</div>
+            </div>
           </div>
-        ))}
-      </div>
-
-      <div>
-        <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: 1, marginBottom: 8 }}>ROUND BY ROUND</div>
-        <div style={{ display: "flex", gap: 6, alignItems: "flex-end", height: 50 }}>
-          {p.roundScores.map((score, index) => {
-            if (score === null) {
-              return (
-                <div key={roundLabels[index]} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                  <div style={{ width: "100%", height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2 }} />
-                  <div style={{ fontSize: 8, color: "rgba(255,255,255,0.15)" }}>{roundLabels[index]}</div>
-                </div>
-              );
-            }
-
-            const height = Math.max(4, (score / 5) * 40);
-            return (
-              <div key={roundLabels[index]} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                <div style={{ fontSize: 9, color: "#F97316", fontWeight: 700 }}>{score}</div>
-                <div style={{
-                  width: "100%",
-                  height,
-                  background: score === 0 ? "rgba(231,76,60,0.4)" : score >= 3 ? "rgba(249,115,22,0.7)" : "rgba(249,115,22,0.35)",
-                  borderRadius: "3px 3px 0 0",
-                }} />
-                <div style={{ fontSize: 8, color: "rgba(255,255,255,0.3)" }}>{roundLabels[index]}</div>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+            <ShotMap zoneStats={player.zoneStats} size="sm" />
+          </div>
+          <div style={styles.miniStats}>
+            <span>Makes <strong>{player.totalMakes}</strong></span>
+            <span>Avg <strong>{player.avg}</strong></span>
+            <span>Best <strong>{player.best}</strong></span>
+            <span>0/5s <strong>{player.zeros}</strong></span>
+          </div>
+          <div style={styles.roundBars}>
+            {player.roundScores.map((score, index) => (
+              <div key={ROUNDS[index]} style={styles.roundBar}>
+                <span>{score ?? "-"}</span>
+                <div style={{ height: score === null ? 4 : Math.max(4, (score / 5) * 40), background: score === 0 ? "rgba(231,76,60,0.45)" : score >= 3 ? "rgba(249,115,22,0.75)" : "rgba(249,115,22,0.35)" }} />
+                <small>{ROUNDS[index]}</small>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
-      </div>
+      ))}
     </div>
   );
 }
 
 export default function App() {
-  const [tab, setTab] = useState("overview");
-  const [selectedPlayer, setSelectedPlayer] = useState("Mohamed Abdisalan");
+  const contestsWithStats = useMemo(() => contests.map((contest) => ({ contest, stats: getContestStats(contest) })), []);
+  const [mainTab, setMainTab] = useState("home");
+  const [activeContestId, setActiveContestId] = useState(contests[0].id);
+  const [contestTab, setContestTab] = useState("overview");
+  const activeEntry = contestsWithStats.find((entry) => entry.contest.id === activeContestId) || contestsWithStats[0];
 
-  const tabs = [
-    { id: "overview", label: "Overview" },
-    { id: "bracket", label: "Bracket" },
-    { id: "zones", label: "Zones" },
-    { id: "players", label: "Players" },
-  ];
+  const openContest = (contestId) => {
+    setActiveContestId(contestId);
+    setMainTab("contest");
+    setContestTab("overview");
+  };
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#0A0A0A",
-      color: "white",
-      fontFamily: "'DM Mono', monospace",
-    }}>
-      <div style={{
-        borderBottom: "1px solid rgba(249,115,22,0.2)",
-        padding: "20px 32px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: 18,
-        flexWrap: "wrap",
-      }}>
+    <div style={styles.app}>
+      <header style={styles.header}>
         <div>
-          <div style={{ fontSize: 32, fontFamily: "'Bebas Neue', cursive", letterSpacing: 4, color: "#F97316" }}>
-            3PT CONTEST
-          </div>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", letterSpacing: 3 }}>WEEK 1 / 12 PLAYERS</div>
+          <div style={styles.brand}>Home of the Mohamed Adem Three Point Contest</div>
+          <div style={styles.headerSub}>Weekly 5-zone shooting stats / winners / player cards</div>
         </div>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: 2 }}>CHAMPION</div>
-          <div style={{ fontSize: 22, fontFamily: "'Bebas Neue', cursive", color: "#F97316", letterSpacing: 2 }}>
-            🏆 MOHAMED ABDISALAN
-          </div>
+        <div style={styles.championBadge}>
+          <span>Current Champion</span>
+          <strong>🏆 {activeEntry.contest.winner}</strong>
         </div>
-      </div>
+      </header>
 
-      <div style={{ display: "flex", gap: 0, borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0 32px", overflowX: "auto" }}>
-        {tabs.map((item) => (
-          <button key={item.id} onClick={() => setTab(item.id)} style={{
-            padding: "14px 20px",
-            background: "none",
-            border: "none",
-            borderBottom: tab === item.id ? "2px solid #F97316" : "2px solid transparent",
-            color: tab === item.id ? "#F97316" : "rgba(255,255,255,0.4)",
-            fontSize: 11,
-            fontFamily: "'DM Mono', monospace",
-            letterSpacing: 2,
-            textTransform: "uppercase",
-            cursor: "pointer",
-          }}>
-            {item.label}
+      <nav style={styles.tabs}>
+        <button onClick={() => setMainTab("home")} style={mainTab === "home" ? styles.tabActive : styles.tab}>Home</button>
+        {contestsWithStats.map(({ contest }) => (
+          <button key={contest.id} onClick={() => openContest(contest.id)} style={mainTab === "contest" && activeContestId === contest.id ? styles.tabActive : styles.tab}>
+            {contest.title}
           </button>
         ))}
-      </div>
+        <button onClick={() => setMainTab("players")} style={mainTab === "players" ? styles.tabActive : styles.tab}>Player Cards</button>
+      </nav>
 
-      <div style={{ padding: "28px 32px" }}>
-        {tab === "overview" && (
-          <div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: 32 }}>
-              {[
-                { label: "Total Players", val: "12", sub: "week 1" },
-                {
-                  label: "Overall FG%",
-                  val: `${Math.round((allStats.reduce((a, b) => a + b.totalMakes, 0) / allStats.reduce((a, b) => a + b.totalAttempts, 0)) * 100)}%`,
-                  sub: "all rounds",
-                },
-                {
-                  label: "Most Makes",
-                  val: `${Math.max(...allStats.map((player) => player.totalMakes))}`,
-                  sub: allStats.find((player) => player.totalMakes === Math.max(...allStats.map((entry) => entry.totalMakes)))?.name,
-                },
-                {
-                  label: "Perfect Rounds",
-                  val: `${allStats.reduce((total, player) => total + player.roundScores.filter((score) => score === 5).length, 0)}`,
-                  sub: "5/5 rounds",
-                },
-              ].map((stat) => (
-                <div key={stat.label} style={{ background: "rgba(255,255,255,0.04)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.07)", padding: "20px 24px" }}>
-                  <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: 2, marginBottom: 8, textTransform: "uppercase" }}>{stat.label}</div>
-                  <div style={{ fontSize: 36, fontFamily: "'Bebas Neue', cursive", color: "#F97316", lineHeight: 1 }}>{stat.val}</div>
-                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>{stat.sub}</div>
-                </div>
-              ))}
-            </div>
-            <OverallStats />
-          </div>
-        )}
+      <main style={styles.content}>
+        {mainTab === "home" && <Home contestsWithStats={contestsWithStats} onOpenContest={openContest} />}
 
-        {tab === "bracket" && (
+        {mainTab === "contest" && (
           <div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", letterSpacing: 2, marginBottom: 20 }}>ELIMINATION BRACKET / WEEK 1</div>
-            <BracketView />
-            <div style={{ marginTop: 32 }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", letterSpacing: 2, marginBottom: 16 }}>SUDDEN DEATH</div>
-              {Object.entries(SD_DATA).map(([round, players]) => (
-                <div key={round} style={{ marginBottom: 20 }}>
-                  <div style={{ fontSize: 10, color: "#F97316", letterSpacing: 2, marginBottom: 10 }}>{round.toUpperCase()}</div>
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                    {players.map((player) => (
-                      <div key={player.player} style={{
-                        padding: "8px 16px",
-                        borderRadius: 8,
-                        fontSize: 11,
-                        background: player.made ? "rgba(46,204,113,0.1)" : "rgba(231,76,60,0.1)",
-                        border: `1px solid ${player.made ? "rgba(46,204,113,0.3)" : "rgba(231,76,60,0.3)"}`,
-                        color: player.made ? "#2ecc71" : "#e74c3c",
-                      }}>
-                        {player.player} / {player.made ? `made on att. ${player.attempts}` : `missed all ${player.attempts}`}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {tab === "zones" && (
-          <div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", letterSpacing: 2, marginBottom: 20 }}>ZONE BREAKDOWN / ALL PLAYERS</div>
-            <div style={{ marginBottom: 32 }}>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: 1, marginBottom: 12 }}>FIELD OVERVIEW</div>
-              <div style={{ display: "flex", justifyContent: "center", background: "rgba(255,255,255,0.03)", borderRadius: 16, padding: 24, border: "1px solid rgba(255,255,255,0.06)" }}>
-                <ShotMap
-                  zoneStats={ZONES.map((_, zoneIndex) => ({
-                    makes: allStats.reduce((total, player) => total + player.zoneStats[zoneIndex].makes, 0),
-                    attempts: allStats.reduce((total, player) => total + player.zoneStats[zoneIndex].attempts, 0),
-                  }))}
-                />
+            <div style={styles.pageHead}>
+              <div>
+                <div style={styles.eyebrow}>{activeEntry.contest.date}</div>
+                <h1 style={styles.h1}>{activeEntry.contest.title}</h1>
+              </div>
+              <div style={styles.weekPills}>
+                {["overview", "bracket", "zones"].map((tab) => (
+                  <button key={tab} onClick={() => setContestTab(tab)} style={contestTab === tab ? styles.segmentActive : styles.segment}>
+                    {tab}
+                  </button>
+                ))}
               </div>
             </div>
-            <ZoneBreakdown />
+            {contestTab === "overview" && <ContestOverview contest={activeEntry.contest} stats={activeEntry.stats} />}
+            {contestTab === "bracket" && <BracketView stats={activeEntry.stats} suddenDeath={activeEntry.contest.suddenDeath} />}
+            {contestTab === "zones" && <ZonesView stats={activeEntry.stats} />}
           </div>
         )}
 
-        {tab === "players" && (
+        {mainTab === "players" && (
           <div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
-              {sortedByPlacement.map((player) => (
-                <button key={player.name} onClick={() => setSelectedPlayer(player.name)} style={{
-                  padding: "6px 14px",
-                  borderRadius: 20,
-                  fontSize: 10,
-                  cursor: "pointer",
-                  fontFamily: "'DM Mono', monospace",
-                  border: "1px solid",
-                  borderColor: selectedPlayer === player.name ? "#F97316" : "rgba(255,255,255,0.12)",
-                  background: selectedPlayer === player.name ? "rgba(249,115,22,0.15)" : "rgba(255,255,255,0.03)",
-                  color: selectedPlayer === player.name ? "#F97316" : "rgba(255,255,255,0.5)",
-                }}>
-                  {player.winner ? "🏆 " : ""}{player.name}
-                </button>
-              ))}
+            <div style={styles.pageHead}>
+              <div>
+                <div style={styles.eyebrow}>{activeEntry.contest.label}</div>
+                <h1 style={styles.h1}>Player cards</h1>
+              </div>
             </div>
-            <div style={{ maxWidth: 520 }}>
-              <PlayerProfile player={selectedPlayer} />
-            </div>
+            <PlayerCards stats={activeEntry.stats} />
           </div>
         )}
-      </div>
+      </main>
 
-      <div style={{
-        borderTop: "1px solid rgba(255,255,255,0.05)",
-        padding: "16px 32px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: 16,
-        flexWrap: "wrap",
-      }}>
-        <div style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", letterSpacing: 2 }}>WEEK 1 / 5 ROUNDS / 12 PLAYERS</div>
-        <div style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", letterSpacing: 2 }}>ORANGE = HOT / YELLOW = MID / RED = COLD</div>
-      </div>
+      <footer style={styles.footer}>Contest 1 / 5 rounds / 12 players / LC-LW-TK-RW-RC</footer>
     </div>
   );
 }
+
+const styles = {
+  app: {
+    minHeight: "100vh",
+    background: "#0A0A0A",
+    color: "white",
+    fontFamily: "'DM Mono', monospace",
+  },
+  header: {
+    borderBottom: "1px solid rgba(249,115,22,0.2)",
+    padding: "22px 32px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 18,
+    flexWrap: "wrap",
+  },
+  brand: {
+    fontFamily: "'Bebas Neue', cursive",
+    fontSize: 38,
+    color: "#F97316",
+    lineHeight: 1,
+  },
+  headerSub: {
+    marginTop: 6,
+    color: "rgba(255,255,255,0.35)",
+    fontSize: 11,
+    textTransform: "uppercase",
+  },
+  championBadge: {
+    textAlign: "right",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: 8,
+    padding: "10px 14px",
+    background: "rgba(255,255,255,0.04)",
+  },
+  tabs: {
+    display: "flex",
+    gap: 0,
+    borderBottom: "1px solid rgba(255,255,255,0.06)",
+    padding: "0 32px",
+    overflowX: "auto",
+  },
+  tab: {
+    padding: "14px 20px",
+    background: "none",
+    border: "none",
+    borderBottom: "2px solid transparent",
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 11,
+    textTransform: "uppercase",
+    cursor: "pointer",
+  },
+  tabActive: {
+    padding: "14px 20px",
+    background: "none",
+    border: "none",
+    borderBottom: "2px solid #F97316",
+    color: "#F97316",
+    fontSize: 11,
+    textTransform: "uppercase",
+    cursor: "pointer",
+  },
+  content: {
+    padding: "30px 32px 42px",
+  },
+  hero: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 18,
+    alignItems: "end",
+    marginBottom: 24,
+    flexWrap: "wrap",
+  },
+  heroStat: {
+    minWidth: 120,
+    border: "1px solid rgba(249,115,22,0.25)",
+    borderRadius: 8,
+    padding: 14,
+    color: "#F97316",
+    textAlign: "right",
+  },
+  pageHead: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 16,
+    alignItems: "center",
+    marginBottom: 20,
+    flexWrap: "wrap",
+  },
+  h1: {
+    margin: 0,
+    fontFamily: "'Bebas Neue', cursive",
+    fontSize: 48,
+    lineHeight: 1,
+    color: "white",
+  },
+  h2: {
+    margin: "2px 0 0",
+    fontFamily: "'Bebas Neue', cursive",
+    fontSize: 28,
+    lineHeight: 1,
+    fontWeight: 400,
+  },
+  eyebrow: {
+    color: "rgba(255,255,255,0.38)",
+    fontSize: 10,
+    textTransform: "uppercase",
+    letterSpacing: 1.5,
+  },
+  muted: {
+    color: "rgba(255,255,255,0.35)",
+    fontSize: 11,
+  },
+  panel: {
+    background: "rgba(255,255,255,0.035)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 8,
+    padding: 20,
+    marginBottom: 18,
+  },
+  sectionHead: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  card: {
+    background: "rgba(255,255,255,0.045)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 8,
+    padding: 18,
+  },
+  resultRow: {
+    display: "grid",
+    gridTemplateColumns: "1.3fr 1fr 1fr 0.8fr",
+    gap: 14,
+    alignItems: "center",
+    textAlign: "left",
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    color: "white",
+    borderRadius: 8,
+    padding: "14px 16px",
+    cursor: "pointer",
+  },
+  titleGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: 14,
+  },
+  statGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: 16,
+    marginBottom: 18,
+  },
+  bigNumber: {
+    marginTop: 6,
+    fontFamily: "'Bebas Neue', cursive",
+    color: "#F97316",
+    fontSize: 38,
+    lineHeight: 1,
+  },
+  segmented: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap",
+    marginBottom: 16,
+  },
+  weekPills: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  segment: {
+    border: "1px solid rgba(255,255,255,0.15)",
+    borderRadius: 999,
+    background: "transparent",
+    color: "rgba(255,255,255,0.52)",
+    padding: "7px 13px",
+    cursor: "pointer",
+    textTransform: "uppercase",
+    fontSize: 11,
+  },
+  segmentActive: {
+    border: "1px solid rgba(249,115,22,0.55)",
+    borderRadius: 999,
+    background: "rgba(249,115,22,0.14)",
+    color: "#F97316",
+    padding: "7px 13px",
+    cursor: "pointer",
+    textTransform: "uppercase",
+    fontSize: 11,
+  },
+  table: {
+    width: "100%",
+    minWidth: 760,
+    borderCollapse: "collapse",
+    fontSize: 12,
+  },
+  th: {
+    color: "rgba(255,255,255,0.38)",
+    textAlign: "left",
+    padding: "8px 10px",
+    borderBottom: "1px solid rgba(249,115,22,0.28)",
+    fontWeight: 400,
+  },
+  td: {
+    padding: "10px",
+    borderBottom: "1px solid rgba(255,255,255,0.05)",
+    color: "rgba(255,255,255,0.68)",
+  },
+  bracket: {
+    display: "grid",
+    gridTemplateColumns: "repeat(5, minmax(135px, 1fr))",
+    minWidth: 760,
+    gap: 4,
+  },
+  bracketTitle: {
+    color: "#F97316",
+    textAlign: "center",
+    padding: "8px 0 12px",
+    borderBottom: "1px solid rgba(249,115,22,0.3)",
+    marginBottom: 10,
+    fontSize: 11,
+  },
+  bracketPlayer: {
+    margin: "5px 6px",
+    padding: "7px 9px",
+    borderRadius: 6,
+    border: "1px solid rgba(255,255,255,0.1)",
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 8,
+    fontSize: 11,
+  },
+  sdPill: {
+    border: "1px solid",
+    borderRadius: 8,
+    padding: "8px 12px",
+    background: "rgba(255,255,255,0.035)",
+    fontSize: 11,
+  },
+  zoneGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+    gap: 12,
+  },
+  playerGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+    gap: 16,
+  },
+  miniStats: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, 1fr)",
+    gap: 8,
+    fontSize: 10,
+    color: "rgba(255,255,255,0.42)",
+    marginBottom: 16,
+  },
+  roundBars: {
+    display: "flex",
+    alignItems: "end",
+    gap: 7,
+    height: 70,
+  },
+  roundBar: {
+    flex: 1,
+    display: "grid",
+    gridTemplateRows: "16px 40px 12px",
+    alignItems: "end",
+    textAlign: "center",
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 10,
+  },
+  footer: {
+    borderTop: "1px solid rgba(255,255,255,0.05)",
+    padding: "16px 32px",
+    color: "rgba(255,255,255,0.25)",
+    fontSize: 10,
+    textTransform: "uppercase",
+  },
+};

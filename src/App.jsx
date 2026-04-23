@@ -749,7 +749,13 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
                       <strong>{contest.date}</strong>
                       <span style={{ ...styles.muted, display: "block", marginTop: 4 }}>{contest.title} / {contest.finish}</span>
                     </span>
-                    <span>{contest.totalMakes}/{contest.totalAttempts} / {contest.pct}%</span>
+                    <span style={{ ...styles.historySummary, ...(isMobile ? styles.historySummaryMobile : null) }}>
+                      <strong>{contest.totalMakes}/{contest.totalAttempts} / {contest.pct}%</strong>
+                      <span style={styles.historyIndicator}>
+                        <span>{expandedContestId === contest.contestId ? "Hide details" : "Show details"}</span>
+                        <span style={styles.historyChevron}>{expandedContestId === contest.contestId ? "▴" : "▾"}</span>
+                      </span>
+                    </span>
                   </button>
                   {expandedContestId === contest.contestId && (
                     <div style={styles.historyDetail}>
@@ -1404,6 +1410,30 @@ const styles = {
   historyToggleMobile: {
     flexDirection: "column",
     alignItems: "flex-start",
+  },
+  historySummary: {
+    display: "grid",
+    gap: 8,
+    justifyItems: "end",
+    textAlign: "right",
+  },
+  historySummaryMobile: {
+    width: "100%",
+    justifyItems: "start",
+    textAlign: "left",
+  },
+  historyIndicator: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    color: "#F97316",
+    fontSize: 11,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  historyChevron: {
+    fontSize: 14,
+    lineHeight: 1,
   },
   historyDetail: {
     padding: "0 16px 16px",

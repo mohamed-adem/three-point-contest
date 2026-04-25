@@ -233,6 +233,14 @@ function buildLeagueData(contests) {
     donutGang: getRecordLeaders(players, "donutGangAppearances"),
     zeroRounds: getRecordLeaders(players, "zeroRounds"),
     firstRoundExits: getRecordLeaders(players, "firstRoundExits"),
+    zones: ZONES.map((zone, index) => ({
+      zone,
+      label: ZONE_LABELS[index],
+      mostMakes: getZoneVolumeRecord(players, index, "makes"),
+      mostMisses: getZoneVolumeRecord(players, index, "misses"),
+      bestPct: getZonePctRecord(players, index, "max"),
+      worstPct: getZonePctRecord(players, index, "min"),
+    })),
   };
 
   return { contests: contestEntries, players, records };
@@ -243,6 +251,58 @@ function getRecordLeaders(players, key) {
   return {
     value: best,
     leaders: players.filter((player) => player[key] === best && best > 0),
+  };
+}
+
+function getZoneVolumeRecord(players, zoneIndex, statKey, mode = "max") {
+  const entries = players
+    .map((player) => {
+      const zone = player.zoneStats[zoneIndex];
+      return {
+        name: player.name,
+        makes: zone.makes,
+        misses: zone.attempts - zone.makes,
+        attempts: zone.attempts,
+      };
+    })
+    .filter((entry) => entry.attempts > 0);
+
+  if (!entries.length) {
+    return { value: 0, leaders: [] };
+  }
+
+  const values = entries.map((entry) => entry[statKey]);
+  const target = mode === "min" ? Math.min(...values) : Math.max(...values);
+
+  return {
+    value: target,
+    leaders: entries.filter((entry) => entry[statKey] === target),
+  };
+}
+
+function getZonePctRecord(players, zoneIndex, mode = "max") {
+  const entries = players
+    .map((player) => {
+      const zone = player.zoneStats[zoneIndex];
+      return {
+        name: player.name,
+        makes: zone.makes,
+        attempts: zone.attempts,
+        pct: zone.attempts ? Math.round((zone.makes / zone.attempts) * 100) : null,
+      };
+    })
+    .filter((entry) => entry.attempts > 0 && entry.pct !== null);
+
+  if (!entries.length) {
+    return { value: 0, leaders: [] };
+  }
+
+  const values = entries.map((entry) => entry.pct);
+  const target = mode === "min" ? Math.min(...values) : Math.max(...values);
+
+  return {
+    value: target,
+    leaders: entries.filter((entry) => entry.pct === target),
   };
 }
 
@@ -828,6 +888,15 @@ function RecordsPage({ records, isMobile }) {
         ["Most First-round Exits", records.firstRoundExits],
       ],
     },
+    ...records.zones.map((zoneRecord) => ({
+      title: `${zoneRecord.zone} / ${zoneRecord.label}`,
+      items: [
+        ["Most Makes", zoneRecord.mostMakes, "", "zoneVolume"],
+        ["Most Misses", zoneRecord.mostMisses, "", "zoneVolume"],
+        ["Best FG%", zoneRecord.bestPct, "%", "zonePct"],
+        ["Worst FG%", zoneRecord.worstPct, "%", "zonePct"],
+      ],
+    })),
   ];
 
   return (
@@ -845,11 +914,11 @@ function RecordsPage({ records, isMobile }) {
             <div style={styles.eyebrow}>{group.title}</div>
             <h2 style={styles.h2}>{group.title}</h2>
             <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
-              {group.items.map(([title, record, suffix]) => (
+              {group.items.map(([title, record, suffix, kind]) => (
                 <div key={title} style={{ ...styles.recordRow, ...(isMobile ? styles.recordRowMobile : null) }}>
                   <div>
                     <strong>{title}</strong>
-                    <div style={styles.muted}>{record.leaders.map((leader) => leader.name).join(", ") || "No data yet"}</div>
+                    <div style={styles.muted}>{formatRecordLeaders(record, kind)}</div>
                   </div>
                   <div style={styles.recordValue}>{record.value}{suffix || ""}</div>
                 </div>
@@ -878,6 +947,17 @@ function RecordSnippet({ title, record, suffix = "" }) {
       <strong>{record.leaders.map((leader) => leader.name).join(", ") || "-"}{record.value ? ` / ${record.value}${suffix}` : ""}</strong>
     </div>
   );
+}
+
+function formatRecordLeaders(record, kind) {
+  if (!record.leaders.length) return "No data yet";
+  if (kind === "zoneVolume") {
+    return record.leaders.map((leader) => `${leader.name} (${leader.makes}/${leader.attempts}, ${leader.misses} misses)`).join(", ");
+  }
+  if (kind === "zonePct") {
+    return record.leaders.map((leader) => `${leader.name} (${leader.makes}/${leader.attempts})`).join(", ");
+  }
+  return record.leaders.map((leader) => leader.name).join(", ");
 }
 
 export default function App() {

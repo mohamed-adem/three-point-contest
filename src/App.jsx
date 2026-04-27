@@ -1089,6 +1089,72 @@ function BioPage() {
   );
 }
 
+function RulesPage() {
+  return (
+    <div>
+      <div style={styles.pageHead}>
+        <div>
+          <div style={styles.eyebrow}>Rules</div>
+          <h1 style={styles.h1}>Three-Point Contest Rules</h1>
+        </div>
+      </div>
+
+      <section style={styles.panel}>
+        <div style={styles.eyebrow}>Overview</div>
+        <h2 style={styles.h2}>General structure</h2>
+        <div style={styles.rulesList}>
+          <p style={styles.bioText}>The contest is played in multiple elimination stages.</p>
+          <p style={styles.bioText}>In each stage, every participant takes five three-point shots.</p>
+          <p style={styles.bioText}>The five shots are taken in the standard order: Left Corner, Left Wing, Top Key, Right Wing, Right Corner.</p>
+          <p style={styles.bioText}>After all players in a round have shot, the top scorers advance to the next round.</p>
+          <p style={styles.bioText}>If there is a tie for the last advancing position or for the final winner, the tie is decided by sudden death.</p>
+          <p style={styles.bioText}>The defending champion from the previous contest receives an automatic bye to Round 2.</p>
+          <p style={styles.bioText}>If the final ends 0-0, the entire contest must be redone from the beginning.</p>
+        </div>
+      </section>
+
+      <section style={styles.panel}>
+        <div style={styles.eyebrow}>Champion&apos;s bye</div>
+        <h2 style={styles.h2}>Champion&apos;s Bye Rule</h2>
+        <div style={styles.rulesList}>
+          <p style={styles.bioText}>The reigning champion from the previous contest automatically advances to Round 2.</p>
+          <p style={styles.bioText}>The reigning champion does not shoot in Round 1.</p>
+          <p style={styles.bioText}>The reigning champion joins the qualified players at the start of Round 2.</p>
+        </div>
+      </section>
+
+      <section style={styles.panel}>
+        <div style={styles.eyebrow}>Tiebreakers</div>
+        <h2 style={styles.h2}>Sudden Death Tiebreakers (&quot;Topping&quot; Rule)</h2>
+        <div style={styles.rulesList}>
+          <p style={styles.bioText}>Tied players take turns shooting one three-point shot from anywhere behind the three-point line.</p>
+          <p style={styles.bioText}>The shooting order is randomized at the beginning of the sudden death tiebreaker and remains fixed for that tiebreaker.</p>
+          <p style={styles.bioText}>If a player makes their shot, all remaining players who have not yet shot in that sudden death cycle must match it to stay alive.</p>
+          <p style={styles.bioText}>A player may only top a make if they have not yet taken their shot in that sudden death cycle.</p>
+          <p style={styles.bioText}>If a player earlier in the order makes their shot and a later player also makes theirs, the earlier player does not receive another attempt in that same cycle.</p>
+          <p style={styles.bioText}>A player is only eliminated if another player has made a shot, that player misses, and all players in that sudden death cycle have taken their turn.</p>
+          <p style={styles.bioText}>If all players make their shot or all players miss their shot, the sudden death cycle is repeated in the same order.</p>
+        </div>
+      </section>
+
+      <section style={styles.panel}>
+        <div style={styles.eyebrow}>Special rules</div>
+        <h2 style={styles.h2}>Special Rules</h2>
+        <div style={styles.rulesList}>
+          <p style={styles.bioText}>No Interference: Players may not distract or interfere with the shooter in any way, including talking, yelling, or making noise during the shot.</p>
+          <p style={styles.bioText}>Late Arrivals: If a new player arrives after the contest has started, the entire contest restarts unless the contest is already in the final round. If the contest is already in the final round, the late-arriving player must wait until the next contest.</p>
+          <p style={styles.bioText}>Champion Absence: If the reigning champion is not present by the start of Round 2, the contest proceeds without the bye unless the reigning champion has given that bye to another player beforehand.</p>
+          <p style={styles.bioText}>Transferred Bye: If the reigning champion gives up the bye before the contest begins, the bye may be transferred to any player.</p>
+          <p style={styles.bioText}>Disputes: Any dispute, including disputes involving scoring, foot faults, or sudden death order, shall be resolved by group vote. If no agreement is reached, a coin toss shall decide.</p>
+          <p style={styles.bioText}>Ball Retrieval Etiquette: Players must retrieve and return balls quickly and fairly between shooters. Deliberate delay is not permitted.</p>
+          <p style={styles.bioText}>No Warm-Up Shots During Rounds: Once a round has started, only the active shooter may take shots. No side shooting or warm-up attempts are allowed by other players.</p>
+          <p style={styles.bioText}>Shooter&apos;s Choice: A player may use any regulation-size basketball during their turn, provided the ball has not been intentionally modified to create an unfair advantage.</p>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function MiniLine({ label, value }) {
   return (
     <div style={styles.miniLine}>
@@ -1172,6 +1238,7 @@ export default function App() {
         {[
           ["home", "Home"],
           ["bio", "Bio"],
+          ["rules", "Rules"],
           ["contests", "Contests"],
           ["players", "Players"],
           ["power-rankings", "Power Rankings"],
@@ -1186,6 +1253,7 @@ export default function App() {
       <main style={{ ...styles.content, ...(isMobile ? styles.contentMobile : null) }}>
         {page === "home" && <HomePage contests={league.contests} players={league.players} records={league.records} onOpenContest={openContest} onOpenPlayer={openPlayer} isMobile={isMobile} />}
         {page === "bio" && <BioPage />}
+        {page === "rules" && <RulesPage />}
         {page === "contests" && <ContestsPage contests={league.contests} activeContestId={activeContestId} onSelectContest={setActiveContestId} isMobile={isMobile} />}
         {page === "players" && <PlayersPage players={league.players} activePlayerName={activePlayerName} onOpenPlayer={openPlayer} isMobile={isMobile} />}
         {page === "power-rankings" && <PowerRankingsPage rankings={POWER_RANKINGS} isMobile={isMobile} />}
@@ -1361,6 +1429,12 @@ const styles = {
     color: "rgba(255,255,255,0.76)",
     fontSize: 15,
     lineHeight: 1.8,
+  },
+  rulesList: {
+    display: "grid",
+    gap: 12,
+    marginTop: 18,
+    maxWidth: 920,
   },
   panel: {
     background: "rgba(255,255,255,0.035)",

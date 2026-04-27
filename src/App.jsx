@@ -1057,6 +1057,38 @@ function PowerRankingsPage({ rankings, isMobile }) {
   );
 }
 
+function BioPage() {
+  return (
+    <div>
+      <div style={styles.pageHead}>
+        <div>
+          <div style={styles.eyebrow}>Bio</div>
+          <h1 style={styles.h1}>Bio of the Three Point Contest</h1>
+        </div>
+      </div>
+
+      <section style={styles.panel}>
+        <div style={styles.eyebrow}>Origin story</div>
+        <h2 style={styles.h2}>How it started</h2>
+        <div style={{ display: "grid", gap: 14, marginTop: 18, maxWidth: 860 }}>
+          <p style={styles.bioText}>
+            The Three Point Contest was founded by the glorious leader Mohamed Adem, whose vision turned a simple idea into a weekly tradition that carries real history, pride, and argument every time the ball goes up. What started as a contest between friends quickly became something bigger: a running archive of winners, collapses, hot streaks, cold streaks, sudden-death drama, and the kind of memories that only matter more as time goes on.
+          </p>
+          <p style={styles.bioText}>
+            Mohamed Adem also holds a place at the very beginning of that history, winning the first ever Three Point Contest and setting the standard for everybody who came after. That first win did more than put his name at the top of the board. It gave the contest a starting point, a benchmark, and a story that every later champion has to measure themselves against.
+          </p>
+          <p style={styles.bioText}>
+            Since then, the contest has grown into a weekly record of the group itself. Every round matters. Every zone has its own reputation. Every player brings a different style, and every week adds another layer to the legacy. The winners will be remembered, the collapses will never be forgotten, and the leaderboard will keep changing, but the foundation traces back to Mohamed Adem and the contest he started.
+          </p>
+          <p style={styles.bioText}>
+            This page exists for that reason: to preserve the story, the stats, and the moments. The Three Point Contest is no longer just a game played on one day. It is now part competition, part history book, and part weekly event that the group will talk about for years.
+          </p>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function MiniLine({ label, value }) {
   return (
     <div style={styles.miniLine}>
@@ -1139,6 +1171,7 @@ export default function App() {
       <nav style={{ ...styles.tabs, ...(isMobile ? styles.tabsMobile : null) }}>
         {[
           ["home", "Home"],
+          ["bio", "Bio"],
           ["contests", "Contests"],
           ["players", "Players"],
           ["power-rankings", "Power Rankings"],
@@ -1152,6 +1185,7 @@ export default function App() {
 
       <main style={{ ...styles.content, ...(isMobile ? styles.contentMobile : null) }}>
         {page === "home" && <HomePage contests={league.contests} players={league.players} records={league.records} onOpenContest={openContest} onOpenPlayer={openPlayer} isMobile={isMobile} />}
+        {page === "bio" && <BioPage />}
         {page === "contests" && <ContestsPage contests={league.contests} activeContestId={activeContestId} onSelectContest={setActiveContestId} isMobile={isMobile} />}
         {page === "players" && <PlayersPage players={league.players} activePlayerName={activePlayerName} onOpenPlayer={openPlayer} isMobile={isMobile} />}
         {page === "power-rankings" && <PowerRankingsPage rankings={POWER_RANKINGS} isMobile={isMobile} />}
@@ -1321,6 +1355,12 @@ const styles = {
   muted: {
     color: "rgba(255,255,255,0.4)",
     fontSize: 11,
+  },
+  bioText: {
+    margin: 0,
+    color: "rgba(255,255,255,0.76)",
+    fontSize: 15,
+    lineHeight: 1.8,
   },
   panel: {
     background: "rgba(255,255,255,0.035)",

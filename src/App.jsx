@@ -6,7 +6,7 @@ const ROUND_KEYS = ["r1", "r2", "r3", "r4", "r5"];
 const ROUND_LABELS = ["R1", "R2", "R3", "R4", "Final"];
 const CONTEST_ROUNDS = ["Round 1", "Round 2", "Round 3", "Round 4", "Final"];
 const POWER_RANKINGS = [
-  "Mohamed Abdisalam",
+  "Abdisalan",
   "Mohamed Adem",
   "Abdisalan",
   "Mohamed Ahmed",

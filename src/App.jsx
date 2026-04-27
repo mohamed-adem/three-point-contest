@@ -877,6 +877,7 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
 }
 
 function RecordsPage({ records, isMobile }) {
+  const [zoneMode, setZoneMode] = useState("totals");
   const groups = [
     {
       title: "Winning",
@@ -902,15 +903,6 @@ function RecordsPage({ records, isMobile }) {
         ["Most First-round Exits", records.firstRoundExits],
       ],
     },
-    ...records.zones.map((zoneRecord) => ({
-      title: `${zoneRecord.zone} / ${zoneRecord.label}`,
-      items: [
-        ["Most Makes", zoneRecord.mostMakes, "", "zoneVolume"],
-        ["Most Misses", zoneRecord.mostMisses, "", "zoneVolume"],
-        ["Best FG%", zoneRecord.bestPct, "%", "zonePct"],
-        ["Worst FG%", zoneRecord.worstPct, "%", "zonePct"],
-      ],
-    })),
   ];
 
   return (
@@ -940,6 +932,96 @@ function RecordsPage({ records, isMobile }) {
             </div>
           </section>
         ))}
+
+        <section style={styles.panel}>
+          <div style={styles.pageHead}>
+            <div>
+              <div style={styles.eyebrow}>Zone records</div>
+              <h2 style={styles.h2}>Best and worst by spot</h2>
+            </div>
+            <div style={styles.segmented}>
+              <button onClick={() => setZoneMode("totals")} style={zoneMode === "totals" ? styles.segmentActive : styles.segment}>
+                Totals
+              </button>
+              <button onClick={() => setZoneMode("pct")} style={zoneMode === "pct" ? styles.segmentActive : styles.segment}>
+                FG%
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gap: 18, marginTop: 8 }}>
+            <ZoneRecordsCourt
+              title="Best"
+              zones={records.zones}
+              mode={zoneMode}
+              variant="best"
+              isMobile={isMobile}
+            />
+            <ZoneRecordsCourt
+              title="Worst"
+              zones={records.zones}
+              mode={zoneMode}
+              variant="worst"
+              isMobile={isMobile}
+            />
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function ZoneRecordsCourt({ title, zones, mode, variant, isMobile }) {
+  const positions = [
+    { top: "66%", left: "7%" },
+    { top: "34%", left: "21%" },
+    { top: "12%", left: "50%" },
+    { top: "34%", left: "79%" },
+    { top: "66%", left: "93%" },
+  ];
+
+  return (
+    <div>
+      <div style={styles.eyebrow}>{variant === "best" ? "Top marks" : "Low marks"}</div>
+      <h3 style={styles.h3}>{title}</h3>
+      <div style={{ ...styles.courtRecordShell, ...(isMobile ? styles.courtRecordShellMobile : null) }}>
+        <svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 100 78"
+          preserveAspectRatio="none"
+          style={styles.courtRecordLines}
+        >
+          <path d="M 8 69 Q 50 -4 92 69" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" />
+          <line x1="0" y1="69" x2="100" y2="69" stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" />
+        </svg>
+        {zones.map((zone, index) => {
+          const record =
+            mode === "totals"
+              ? variant === "best"
+                ? zone.mostMakes
+                : zone.mostMisses
+              : variant === "best"
+                ? zone.bestPct
+                : zone.worstPct;
+
+          return (
+            <div
+              key={`${title}-${zone.zone}`}
+              style={{
+                ...styles.courtRecordNode,
+                top: positions[index].top,
+                left: positions[index].left,
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              <div style={styles.eyebrow}>{zone.zone}</div>
+              <strong style={styles.courtRecordZoneTitle}>{zone.label}</strong>
+              <div style={styles.courtRecordLeaders}>{formatZoneCourtLeaders(record, mode)}</div>
+              <div style={styles.courtRecordValue}>{formatZoneCourtValue(record, mode)}</div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -1001,6 +1083,23 @@ function formatRecordLeaders(record, kind) {
     return record.leaders.map((leader) => `${leader.name} (${leader.makes}/${leader.attempts})`).join(", ");
   }
   return record.leaders.map((leader) => leader.name).join(", ");
+}
+
+function formatZoneCourtLeaders(record, mode) {
+  if (!record.leaders.length) return "No data yet";
+  if (mode === "pct") {
+    return record.leaders.map((leader) => `${leader.name} (${leader.makes}/${leader.attempts})`).join(" / ");
+  }
+  return record.leaders.map((leader) => leader.name).join(" / ");
+}
+
+function formatZoneCourtValue(record, mode) {
+  if (!record.leaders.length) return "-";
+  const leader = record.leaders[0];
+  if (mode === "pct") {
+    return `${record.value}%`;
+  }
+  return `${leader.makes}/${leader.attempts}`;
 }
 
 export default function App() {
@@ -1643,6 +1742,52 @@ const styles = {
     fontFamily: "'Bebas Neue', cursive",
     fontSize: 30,
     color: "#F97316",
+    lineHeight: 1,
+  },
+  courtRecordShell: {
+    position: "relative",
+    minHeight: 520,
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 8,
+    background: "rgba(255,255,255,0.025)",
+    overflow: "hidden",
+    padding: 20,
+  },
+  courtRecordShellMobile: {
+    minHeight: 760,
+    padding: 14,
+  },
+  courtRecordLines: {
+    position: "absolute",
+    inset: 0,
+  },
+  courtRecordNode: {
+    position: "absolute",
+    width: 170,
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 8,
+    background: "rgba(18,18,18,0.96)",
+    padding: 12,
+    boxShadow: "0 10px 24px rgba(0,0,0,0.18)",
+  },
+  courtRecordZoneTitle: {
+    display: "block",
+    marginTop: 4,
+    color: "white",
+    fontSize: 13,
+    lineHeight: 1.2,
+  },
+  courtRecordLeaders: {
+    marginTop: 8,
+    color: "rgba(255,255,255,0.62)",
+    fontSize: 10,
+    lineHeight: 1.4,
+  },
+  courtRecordValue: {
+    marginTop: 10,
+    color: "#F97316",
+    fontFamily: "'Bebas Neue', cursive",
+    fontSize: 28,
     lineHeight: 1,
   },
   footer: {

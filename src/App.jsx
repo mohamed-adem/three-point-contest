@@ -5,7 +5,7 @@ const ZONE_LABELS = ["Left Corner", "Left Wing", "Top Key", "Right Wing", "Right
 const ROUND_KEYS = ["r1", "r2", "r3", "r4", "r5"];
 const ROUND_LABELS = ["R1", "R2", "R3", "R4", "Final"];
 const CONTEST_ROUNDS = ["Round 1", "Round 2", "Round 3", "Round 4", "Final"];
-const POWER_RANKINGS = [
+const PREVIOUS_POWER_RANKINGS = [
   "Mohamed Abdisalan",
   "Mohamed Adem",
   "Abdisalan",
@@ -18,6 +18,22 @@ const POWER_RANKINGS = [
   "Mohamed Salad",
   "Yahya",
   "Muhsin",
+  "Abdimanan",
+];
+const POWER_RANKINGS = [
+  "Mohamed Adem",
+  "Mohamed Abdisalan",
+  "Abdisalan",
+  "Mohamed Omar",
+  "AhmedNur",
+  "Muhsin",
+  "Mohamed Ahmed",
+  "Majdi",
+  "Abdiaziz",
+  "Yahya",
+  "Ahmed-Suhaib",
+  "Mohamed Salad",
+  "Sebri",
   "Abdimanan",
 ];
 
@@ -1097,6 +1113,8 @@ function ZoneRecordsCourt({ title, zones, mode, variant, isMobile }) {
 }
 
 function PowerRankingsPage({ rankings, isMobile }) {
+  const previousPositions = new Map(PREVIOUS_POWER_RANKINGS.map((name, index) => [name, index + 1]));
+
   return (
     <div>
       <div style={styles.pageHead}>
@@ -1108,17 +1126,41 @@ function PowerRankingsPage({ rankings, isMobile }) {
 
       <section style={styles.panel}>
         <div style={styles.eyebrow}>Subjective order</div>
-        <h2 style={styles.h2}>Top 12</h2>
+        <h2 style={styles.h2}>Top 14</h2>
         <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
-          {rankings.map((name, index) => (
+          {rankings.map((name, index) => {
+            const currentRank = index + 1;
+            const previousRank = previousPositions.get(name);
+            const isNew = previousRank === undefined;
+            const delta = isNew ? null : previousRank - currentRank;
+            const trendStyle = isNew
+              ? styles.rankTrendNew
+              : delta > 0
+                ? styles.rankTrendUp
+                : delta < 0
+                  ? styles.rankTrendDown
+                  : styles.rankTrendSame;
+            const trendText = isNew
+              ? "NEW"
+              : delta > 0
+                ? `▲ ${Math.abs(delta)}`
+                : delta < 0
+                  ? `▼ ${Math.abs(delta)}`
+                  : "• 0";
+
+            return (
             <div key={name} style={{ ...styles.recordRow, ...(isMobile ? styles.recordRowMobile : null) }}>
               <div>
                 <strong>#{index + 1}</strong>
                 <div style={styles.muted}>Power ranking</div>
               </div>
-              <div style={{ ...styles.recordValue, fontSize: isMobile ? 24 : 30, textAlign: isMobile ? "left" : "right" }}>{name}</div>
+              <div style={{ display: "grid", gap: 6, justifyItems: isMobile ? "start" : "end" }}>
+                <div style={{ ...styles.recordValue, fontSize: isMobile ? 24 : 30, textAlign: isMobile ? "left" : "right" }}>{name}</div>
+                <div style={trendStyle}>{trendText}</div>
+              </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
     </div>
@@ -1926,6 +1968,30 @@ const styles = {
     fontSize: 30,
     color: "#F97316",
     lineHeight: 1,
+  },
+  rankTrendUp: {
+    color: "#2ecc71",
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: 1,
+  },
+  rankTrendDown: {
+    color: "#e74c3c",
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: 1,
+  },
+  rankTrendSame: {
+    color: "rgba(255,255,255,0.45)",
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: 1,
+  },
+  rankTrendNew: {
+    color: "#f1c40f",
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: 1,
   },
   courtRecordShell: {
     position: "relative",

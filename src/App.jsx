@@ -35,6 +35,7 @@ const POWER_RANKINGS = [
   "Mohamed Salad",
   "Sebri",
   "Abdimanan",
+  "AbdulTenTen",
 ];
 
 const CONTESTS = [

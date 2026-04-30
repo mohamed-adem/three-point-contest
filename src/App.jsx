@@ -23,6 +23,47 @@ const POWER_RANKINGS = [
 
 const CONTESTS = [
   {
+    id: "contest-2",
+    title: "Contest 2",
+    date: "April 29, 2026",
+    winner: "AhmedNur",
+    runnerUp: "Mohamed Omar",
+    rawData: {
+      "Mohamed Omar": { r1: "00100", r2: "10100", r3: "01101", r4: "00001", r5: "00110", eliminated: 5 },
+      Muhsin: { r1: "00110", r2: "10010", r3: "01001", r4: "00000", r5: null, eliminated: 4 },
+      Abdisalan: { r1: "11101", r2: "10010", r3: "10001", r4: null, r5: null, eliminated: 3 },
+      Majdi: { r1: "01000", r2: "01000", r3: null, r4: null, r5: null, eliminated: 2 },
+      "Mohamed Adem": { r1: "00000", r2: "00100", r3: "11000", r4: "00000", r5: null, eliminated: 4, sdElim: true },
+      "Mohamed Ahmed": { r1: "00001", r2: "10010", r3: "10000", r4: null, r5: null, eliminated: 3 },
+      AhmedNur: { r1: "00000", r2: "01000", r3: "10101", r4: "00100", r5: "00110", eliminated: 6, winner: true, sdElim: true },
+      Yahya: { r1: "00010", r2: "00000", r3: null, r4: null, r5: null, eliminated: 2 },
+      "Ahmed-Suhaib": { r1: "00000", r2: null, r3: null, r4: null, r5: null, eliminated: 1, sdElim: true },
+      "Mohamed Salad": { r1: "00000", r2: null, r3: null, r4: null, r5: null, eliminated: 1, sdElim: true },
+    },
+    suddenDeath: {
+      "Round 1": [
+        { player: "Mohamed Adem", summary: "2/5", status: "advanced" },
+        { player: "AhmedNur", summary: "1/1", status: "advanced" },
+        { player: "Ahmed-Suhaib", summary: "1/5", status: "eliminated" },
+        { player: "Mohamed Salad", summary: "quit", status: "quit" },
+      ],
+      "Round 2": [
+        { player: "Mohamed Adem", summary: "1/1", status: "advanced" },
+        { player: "Majdi", summary: "1/5", status: "eliminated" },
+        { player: "AhmedNur", summary: "2/5", status: "advanced" },
+      ],
+      "Round 3": [
+        { player: "Abdisalan", summary: "0/2", status: "eliminated" },
+        { player: "Mohamed Adem", summary: "1/2", status: "advanced" },
+        { player: "Muhsin", summary: "1/1", status: "advanced" },
+      ],
+      Final: [
+        { player: "Mohamed Omar", summary: "0/1", status: "eliminated" },
+        { player: "AhmedNur", summary: "1/1", status: "winner" },
+      ],
+    },
+  },
+  {
     id: "contest-1",
     title: "Contest 1",
     date: "April 22, 2026",
@@ -318,6 +359,30 @@ function getZonePctRecord(players, zoneIndex, mode = "max") {
   return {
     value: target,
     leaders: entries.filter((entry) => entry.pct === target),
+  };
+}
+
+function getSuddenDeathDisplay(player) {
+  if (player.summary) {
+    const tone = player.status === "advanced" || player.status === "winner"
+      ? "#2ecc71"
+      : "#e74c3c";
+    const border = player.status === "advanced" || player.status === "winner"
+      ? "rgba(46,204,113,0.35)"
+      : "rgba(231,76,60,0.35)";
+    return {
+      color: tone,
+      borderColor: border,
+      text: `${player.player} / ${player.summary}`,
+    };
+  }
+
+  const tone = player.made ? "#2ecc71" : "#e74c3c";
+  const border = player.made ? "rgba(46,204,113,0.35)" : "rgba(231,76,60,0.35)";
+  return {
+    color: tone,
+    borderColor: border,
+    text: `${player.player} / ${player.made ? `made on ${player.attempts}` : `0/${player.attempts}`}`,
   };
 }
 
@@ -646,15 +711,18 @@ function BracketSection({ contest }) {
           <div key={round} style={{ marginTop: 16 }}>
             <div style={{ ...styles.eyebrow, color: "#F97316" }}>{round}</div>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 10 }}>
-              {players.map((player) => (
-                <div key={player.player} style={{
-                  ...styles.sdPill,
-                  color: player.made ? "#2ecc71" : "#e74c3c",
-                  borderColor: player.made ? "rgba(46,204,113,0.35)" : "rgba(231,76,60,0.35)",
-                }}>
-                  {player.player} / {player.made ? `made on ${player.attempts}` : `0/${player.attempts}`}
-                </div>
-              ))}
+              {players.map((player) => {
+                const sdDisplay = getSuddenDeathDisplay(player);
+                return (
+                  <div key={player.player} style={{
+                    ...styles.sdPill,
+                    color: sdDisplay.color,
+                    borderColor: sdDisplay.borderColor,
+                  }}>
+                    {sdDisplay.text}
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}
@@ -1260,7 +1328,7 @@ export default function App() {
         {page === "records" && <RecordsPage records={league.records} isMobile={isMobile} />}
       </main>
 
-      <footer style={{ ...styles.footer, ...(isMobile ? styles.footerMobile : null) }}>Contest 1 loaded / future weekly contests can be added to the contest list</footer>
+      <footer style={{ ...styles.footer, ...(isMobile ? styles.footerMobile : null) }}>{league.contests.length} contests loaded / future weekly contests can be added to the contest list</footer>
     </div>
   );
 }

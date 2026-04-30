@@ -1066,6 +1066,36 @@ function ZoneRecordsCourt({ title, zones, mode, variant, isMobile }) {
     { top: "66%", left: "93%" },
   ];
 
+  if (isMobile) {
+    return (
+      <div>
+        <div style={styles.eyebrow}>{variant === "best" ? "Top marks" : "Low marks"}</div>
+        <h3 style={styles.h3}>{title}</h3>
+        <div style={styles.mobileZoneRecordGrid}>
+          {zones.map((zone) => {
+            const record =
+              mode === "totals"
+                ? variant === "best"
+                  ? zone.mostMakes
+                  : zone.mostMisses
+                : variant === "best"
+                  ? zone.bestPct
+                  : zone.worstPct;
+
+            return (
+              <div key={`${title}-${zone.zone}`} style={styles.mobileZoneRecordCard}>
+                <div style={styles.eyebrow}>{zone.zone}</div>
+                <strong style={styles.courtRecordZoneTitle}>{zone.label}</strong>
+                <div style={styles.courtRecordLeaders}>{formatZoneCourtLeaders(record, mode)}</div>
+                <div style={styles.courtRecordValue}>{formatZoneCourtValue(record, mode)}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div style={styles.eyebrow}>{variant === "best" ? "Top marks" : "Low marks"}</div>
@@ -1348,12 +1378,12 @@ export default function App() {
       <nav style={{ ...styles.tabs, ...(isMobile ? styles.tabsMobile : null) }}>
         {[
           ["home", "Home"],
-          ["bio", "Bio"],
-          ["rules", "Rules"],
           ["contests", "Contests"],
           ["players", "Players"],
           ["power-rankings", "Power Rankings"],
           ["records", "Records"],
+          ["rules", "Rules"],
+          ["bio", "Bio"],
         ].map(([key, label]) => (
           <button key={key} onClick={() => setPage(key)} style={page === key ? styles.tabActive : styles.tab}>
             {label}
@@ -2005,6 +2035,18 @@ const styles = {
   },
   courtRecordShellMobile: {
     minHeight: 760,
+    padding: 14,
+  },
+  mobileZoneRecordGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: 12,
+    marginTop: 14,
+  },
+  mobileZoneRecordCard: {
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 8,
+    background: "rgba(18,18,18,0.96)",
     padding: 14,
   },
   courtRecordLines: {

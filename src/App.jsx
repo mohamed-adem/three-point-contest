@@ -120,6 +120,15 @@ function parseShots(str) {
   return str.split("").map(Number);
 }
 
+function getZoneHeatColor(pct, hasAttempts = true) {
+  if (!hasAttempts) return "#333";
+  if (pct <= 0.1) return "#c0392b";
+  if (pct <= 0.25) return "#e67e22";
+  if (pct <= 0.35) return "#f1c40f";
+  if (pct <= 0.5) return "#7ed957";
+  return "#2ecc71";
+}
+
 function sumRound(round) {
   if (!round || round === "?????") return null;
   if (typeof round === "object") return round.score ?? null;
@@ -421,7 +430,7 @@ function useIsMobile(breakpoint = 768) {
   return isMobile;
 }
 
-function ShotMap({ zoneStats, size = "md" }) {
+function ShotMap({ zoneStats, size = "md", displayMode = "total" }) {
   const scale = size === "sm" ? 0.65 : 1;
   const width = 220 * scale;
   const height = 130 * scale;
@@ -440,12 +449,17 @@ function ShotMap({ zoneStats, size = "md" }) {
       {anchors.map((anchor, index) => {
         const stat = zoneStats[index];
         const pct = stat.attempts ? stat.makes / stat.attempts : 0;
-        const color = stat.attempts === 0 ? "#333" : pct === 0 ? "#c0392b" : pct < 0.4 ? "#e67e22" : pct < 0.7 ? "#f1c40f" : "#2ecc71";
+        const color = getZoneHeatColor(pct, stat.attempts > 0);
+        const displayValue = stat.attempts
+          ? displayMode === "pct"
+            ? `${Math.round(pct * 100)}%`
+            : `${stat.makes}/${stat.attempts}`
+          : "-";
         return (
           <g key={anchor.label}>
             <circle cx={anchor.x + 15 * scale} cy={anchor.y + 15 * scale} r={(14 + pct * 8) * scale} fill={color} opacity={0.88} />
             <text x={anchor.x + 15 * scale} y={anchor.y + 15 * scale - 2 * scale} textAnchor="middle" fill="white" fontSize={9 * scale} fontWeight="700">
-              {stat.attempts ? `${stat.makes}/${stat.attempts}` : "-"}
+              {displayValue}
             </text>
             <text x={anchor.x + 15 * scale} y={anchor.y + 15 * scale + 8 * scale} textAnchor="middle" fill="rgba(255,255,255,0.68)" fontSize={7.5 * scale}>
               {anchor.label}
@@ -772,7 +786,7 @@ function ContestZones({ stats }) {
             <div key={zone} style={styles.card}>
               <div style={styles.eyebrow}>{zone}</div>
               <div style={styles.muted}>{ZONE_LABELS[index]}</div>
-              <div style={{ ...styles.bigNumber, color: pct >= 40 ? "#2ecc71" : pct >= 25 ? "#f1c40f" : "#e74c3c" }}>{pct}%</div>
+              <div style={{ ...styles.bigNumber, color: getZoneHeatColor(pct / 100, attempts > 0) }}>{pct}%</div>
               <div style={styles.muted}>{makes}/{attempts} overall</div>
             </div>
           );
@@ -785,6 +799,7 @@ function ContestZones({ stats }) {
 function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
   const activePlayer = players.find((player) => player.name === activePlayerName) || players[0];
   const [expandedContestId, setExpandedContestId] = useState(activePlayer?.contests[0]?.contestId ?? null);
+  const [zoneDisplayMode, setZoneDisplayMode] = useState("total");
   const primaryStats = [
     { label: "Appearances", value: activePlayer.appearances },
     { label: "Wins", value: activePlayer.wins },
@@ -798,6 +813,10 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
 
   useEffect(() => {
     setExpandedContestId(activePlayer?.contests[0]?.contestId ?? null);
+  }, [activePlayerName]);
+
+  useEffect(() => {
+    setZoneDisplayMode("total");
   }, [activePlayerName]);
 
   return (
@@ -877,10 +896,28 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
 
             <div style={{ ...styles.twoColumn, ...(isMobile ? styles.singleColumn : null) }}>
               <section style={styles.panelInset}>
-                <div style={styles.eyebrow}>Career zone chart</div>
-                <h3 style={styles.h3}>All-time shooting zones</h3>
+                <div style={{ ...styles.sectionHead, alignItems: isMobile ? "flex-start" : "center", gap: 12 }}>
+                  <div>
+                    <div style={styles.eyebrow}>Career zone chart</div>
+                    <h3 style={styles.h3}>All-time shooting zones</h3>
+                  </div>
+                  <div style={styles.segmented}>
+                    <button
+                      onClick={() => setZoneDisplayMode("total")}
+                      style={zoneDisplayMode === "total" ? styles.segmentActive : styles.segment}
+                    >
+                      Totals
+                    </button>
+                    <button
+                      onClick={() => setZoneDisplayMode("pct")}
+                      style={zoneDisplayMode === "pct" ? styles.segmentActive : styles.segment}
+                    >
+                      FG%
+                    </button>
+                  </div>
+                </div>
                 <div style={{ display: "flex", justifyContent: "center", marginTop: 14 }}>
-                  <ShotMap zoneStats={activePlayer.zoneStats} />
+                  <ShotMap zoneStats={activePlayer.zoneStats} displayMode={zoneDisplayMode} />
                 </div>
               </section>
 

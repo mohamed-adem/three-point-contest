@@ -253,6 +253,8 @@ function buildLeagueData(contests) {
           firstRoundExits: 0,
           donutGangAppearances: 0,
           zeroRounds: 0,
+          suddenDeathAppearances: 0,
+          suddenDeathWins: 0,
           totalMakes: 0,
           totalAttempts: 0,
           totalRounds: 0,
@@ -294,6 +296,18 @@ function buildLeagueData(contests) {
         roundScores: player.roundScores,
       });
     });
+
+    Object.values(contest.suddenDeath || {}).forEach((entries) => {
+      entries.forEach((entry) => {
+        const aggregate = playersMap.get(entry.player);
+        if (!aggregate) return;
+        aggregate.suddenDeathAppearances += 1;
+        const isWin = entry.status
+          ? entry.status === "advanced" || entry.status === "winner"
+          : Boolean(entry.made);
+        aggregate.suddenDeathWins += isWin ? 1 : 0;
+      });
+    });
   });
 
   const players = [...playersMap.values()]
@@ -315,6 +329,8 @@ function buildLeagueData(contests) {
     donutGang: getRecordLeaders(players, "donutGangAppearances"),
     zeroRounds: getRecordLeaders(players, "zeroRounds"),
     firstRoundExits: getRecordLeaders(players, "firstRoundExits"),
+    suddenDeathApps: getRecordLeaders(players, "suddenDeathAppearances"),
+    suddenDeathWins: getRecordLeaders(players, "suddenDeathWins"),
     zones: ZONES.map((zone, index) => ({
       zone,
       label: ZONE_LABELS[index],
@@ -1023,6 +1039,13 @@ function RecordsPage({ records, isMobile }) {
         ["Most Donut Gang Appearances", records.donutGang],
         ["Most 0/5 Rounds", records.zeroRounds],
         ["Most First-round Exits", records.firstRoundExits],
+      ],
+    },
+    {
+      title: "Clutch",
+      items: [
+        ["Most Sudden Death Appearances", records.suddenDeathApps],
+        ["King of Sudden Death", records.suddenDeathWins],
       ],
     },
   ];

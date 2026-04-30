@@ -896,11 +896,10 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
 
             <div style={{ ...styles.twoColumn, ...(isMobile ? styles.singleColumn : null) }}>
               <section style={styles.panelInset}>
-                <div style={{ ...styles.sectionHead, alignItems: isMobile ? "flex-start" : "center", gap: 12 }}>
-                  <div>
-                    <div style={styles.eyebrow}>Career zone chart</div>
-                    <h3 style={styles.h3}>All-time shooting zones</h3>
-                  </div>
+                <div style={styles.eyebrow}>Career zone chart</div>
+                <h3 style={styles.h3}>All-time shooting zones</h3>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
+                  <span style={styles.muted}>View</span>
                   <div style={styles.segmented}>
                     <button
                       onClick={() => setZoneDisplayMode("total")}

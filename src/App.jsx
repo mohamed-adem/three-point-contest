@@ -405,10 +405,20 @@ function getZoneVolumeRecord(players, zoneIndex, statKey, mode = "max") {
 
   const values = entries.map((entry) => entry[statKey]);
   const target = mode === "min" ? Math.min(...values) : Math.max(...values);
+  const leaders = entries.filter((entry) => entry[statKey] === target);
+
+  if (statKey === "makes" && leaders.length > 1) {
+    const fewestAttempts = Math.min(...leaders.map((entry) => entry.attempts));
+    const bestLeader = leaders.find((entry) => entry.attempts === fewestAttempts);
+    return {
+      value: target,
+      leaders: bestLeader ? [bestLeader] : leaders,
+    };
+  }
 
   return {
     value: target,
-    leaders: entries.filter((entry) => entry[statKey] === target),
+    leaders,
   };
 }
 
@@ -431,10 +441,20 @@ function getZonePctRecord(players, zoneIndex, mode = "max") {
 
   const values = entries.map((entry) => entry.pct);
   const target = mode === "min" ? Math.min(...values) : Math.max(...values);
+  const leaders = entries.filter((entry) => entry.pct === target);
+
+  if (leaders.length > 1) {
+    const mostAttempts = Math.max(...leaders.map((entry) => entry.attempts));
+    const bestLeader = leaders.find((entry) => entry.attempts === mostAttempts);
+    return {
+      value: target,
+      leaders: bestLeader ? [bestLeader] : leaders,
+    };
+  }
 
   return {
     value: target,
-    leaders: entries.filter((entry) => entry.pct === target),
+    leaders,
   };
 }
 

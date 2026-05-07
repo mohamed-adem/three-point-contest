@@ -6,19 +6,21 @@ const ROUND_KEYS = ["r1", "r2", "r3", "r4", "r5"];
 const ROUND_LABELS = ["R1", "R2", "R3", "R4", "Final"];
 const CONTEST_ROUNDS = ["Round 1", "Round 2", "Round 3", "Round 4", "Final"];
 const PREVIOUS_POWER_RANKINGS = [
-  "Mohamed Abdisalan",
   "Mohamed Adem",
+  "Mohamed Abdisalan",
   "Abdisalan",
+  "Mohamed Omar",
+  "AhmedNur",
+  "Muhsin",
   "Mohamed Ahmed",
   "Majdi",
-  "Mohamed Omar",
   "Abdiaziz",
-  "Sebri",
+  "Yahya",
   "Ahmed-Suhaib",
   "Mohamed Salad",
-  "Yahya",
-  "Muhsin",
+  "Sebri",
   "Abdimanan",
+  "Abdulrahman",
 ];
 const POWER_RANKINGS = [
   "Mohamed Abdisalan",

@@ -42,6 +42,32 @@ const POWER_RANKINGS = [
 
 const CONTESTS = [
   {
+    id: "contest-4",
+    title: "Contest 4",
+    date: "May 13, 2026",
+    winner: "Majdi",
+    runnerUp: "Yahya",
+    rawData: {
+      Majdi: { r1: null, r2: "01010", r3: null, r4: null, r5: "00111", eliminated: 6, winner: true },
+      Yahya: { r1: "01000", r2: "10110", r3: null, r4: null, r5: "01000", eliminated: 5 },
+      "Ahmed-Suhaib": { r1: "10101", r2: "01001", r3: null, r4: null, r5: null, eliminated: 2, sdElim: true },
+      Muhsin: { r1: "00000", r2: "00000", r3: null, r4: null, r5: null, eliminated: 2 },
+      "Mohamed Adem": { r1: "00000", r2: null, r3: null, r4: null, r5: null, eliminated: 1, sdElim: true },
+      "Mohamed Ahmed": { r1: "00000", r2: null, r3: null, r4: null, r5: null, eliminated: 1, sdElim: true },
+    },
+    suddenDeath: {
+      "Round 1": [
+        { player: "Muhsin", summary: "1/3", status: "advanced" },
+        { player: "Mohamed Adem", summary: "0/3", status: "eliminated" },
+        { player: "Mohamed Ahmed", summary: "0/3", status: "eliminated" },
+      ],
+      "Round 2": [
+        { player: "Majdi", summary: "1/4", status: "advanced" },
+        { player: "Ahmed-Suhaib", summary: "0/4", status: "eliminated" },
+      ],
+    },
+  },
+  {
     id: "contest-3",
     title: "Contest 3",
     date: "May 6, 2026",

@@ -56,7 +56,7 @@ export const CONTESTS = [
     winner: "Majdi",
     runnerUp: "Yahya",
     rawData: {
-      Majdi: { r1: null, r2: "01010", r3: null, r4: null, r5: "00111", eliminated: 6, winner: true },
+      Majdi: { r1: { bye: true }, r2: "01010", r3: null, r4: null, r5: "00111", eliminated: 6, winner: true },
       Yahya: { r1: "01000", r2: "10110", r3: null, r4: null, r5: "01000", eliminated: 5 },
       "Ahmed-Suhaib": { r1: "10101", r2: "01001", r3: null, r4: null, r5: null, eliminated: 2, sdElim: true },
       Muhsin: { r1: "00000", r2: "00000", r3: null, r4: null, r5: null, eliminated: 2 },
@@ -91,7 +91,7 @@ export const CONTESTS = [
       Abdisalan: { r1: "00000", r2: null, r3: null, r4: null, r5: null, eliminated: 1 },
       Sebri: { r1: "01011", r2: "10111", r3: "11001", r4: "10001", r5: null, eliminated: 4 },
       Yahya: { r1: "01010", r2: "00100", r3: "00000", r4: null, r5: null, eliminated: 3, sdElim: true },
-      AhmedNur: { r1: null, r2: "00000", r3: null, r4: null, r5: null, eliminated: 2 },
+      AhmedNur: { r1: { bye: true }, r2: "00000", r3: null, r4: null, r5: null, eliminated: 2 },
     },
     suddenDeath: {
       "Round 2": [

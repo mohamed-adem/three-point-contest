@@ -25,6 +25,7 @@ function getZoneHeatColor(pct, hasAttempts = true) {
 
 function sumRound(round) {
   if (!round || round === "?????") return null;
+  if (round.bye) return null;
   if (typeof round === "object") return round.score ?? null;
   return parseShots(round).reduce((total, shot) => total + shot, 0);
 }
@@ -39,6 +40,16 @@ function buildRoundDetail(round) {
   }
 
   if (typeof round === "object") {
+    if (round.bye) {
+      return {
+        raw: null,
+        score: null,
+        bye: true,
+        zonesKnown: false,
+        zoneStats: ZONES.map(() => ({ makes: 0, attempts: 0 })),
+      };
+    }
+
     return {
       raw: null,
       score: round.score ?? null,
@@ -76,6 +87,7 @@ function computeContestPlayerStats(name, data) {
   rounds.forEach((round) => {
     if (!round || round === "?????") return;
     if (typeof round === "object") {
+      if (round.bye) return;
       totalAttempts += 5;
       totalMakes += round.score ?? 0;
       if ((round.score ?? 0) === 0) zeroRounds += 1;
@@ -646,6 +658,8 @@ function BracketSection({ contest }) {
               <div style={styles.bracketTitle}>{round}</div>
               {roundPlayers[round].map((name) => {
                 const player = stats.players.find((entry) => entry.name === name);
+                const roundDetail = player.roundDetails[roundIndex];
+                const isBye = Boolean(roundDetail?.bye);
                 const eliminated = player.eliminated === roundIndex + 1;
                 const isWinner = player.winner && round === "Final";
                 return (
@@ -656,7 +670,11 @@ function BracketSection({ contest }) {
                     textDecoration: eliminated ? "line-through" : "none",
                   }}>
                     <span>{isWinner ? "🏆 " : ""}{name}</span>
-                    {player.roundScores[roundIndex] !== null && <strong>{player.roundScores[roundIndex]}</strong>}
+                    {isBye ? (
+                      <strong style={styles.byeBadge}>BYE</strong>
+                    ) : (
+                      player.roundScores[roundIndex] !== null && <strong>{player.roundScores[roundIndex]}</strong>
+                    )}
                   </div>
                 );
               })}
@@ -889,7 +907,7 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
                         {contest.roundDetails.map((detail, index) => (
                           <div key={ROUND_LABELS[index]} style={styles.roundScoreBox}>
                             <div style={styles.eyebrow}>{ROUND_LABELS[index]}</div>
-                            <strong>{detail.score ?? "-"}</strong>
+                            <strong style={detail.bye ? styles.byeText : null}>{detail.bye ? "BYE" : detail.score ?? "-"}</strong>
                           </div>
                         ))}
                       </div>
@@ -898,7 +916,9 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
                           <div key={`${contest.contestId}-${ROUND_LABELS[index]}-map`} style={styles.roundMapCard}>
                             <div style={styles.eyebrow}>{ROUND_LABELS[index]} shot map</div>
                             <div style={{ ...styles.muted, marginTop: 4 }}>
-                              {detail.raw
+                              {detail.bye
+                                ? "Champion's bye"
+                                : detail.raw
                                 ? detail.raw
                                 : detail.score !== null && detail.zonesKnown === false
                                   ? `${detail.score} makes / zones unknown`
@@ -909,7 +929,11 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
                                 <ShotMap zoneStats={detail.zoneStats} size="sm" />
                               ) : (
                                 <div style={styles.roundMapEmpty}>
-                                  {detail.score !== null ? "Shot map unavailable" : "No shot map available"}
+                                  {detail.bye
+                                    ? "Advanced automatically"
+                                    : detail.score !== null
+                                      ? "Shot map unavailable"
+                                      : "No shot map available"}
                                 </div>
                               )}
                             </div>
@@ -1778,6 +1802,11 @@ const styles = {
     gap: 8,
     fontSize: 11,
   },
+  byeBadge: {
+    color: "#F97316",
+    fontSize: 10,
+    letterSpacing: 0,
+  },
   sdPill: {
     border: "1px solid",
     borderRadius: 8,
@@ -1905,6 +1934,9 @@ const styles = {
     padding: "10px 8px",
     background: "rgba(255,255,255,0.04)",
     textAlign: "center",
+  },
+  byeText: {
+    color: "#F97316",
   },
   roundMapGrid: {
     display: "grid",

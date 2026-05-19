@@ -641,35 +641,41 @@ function ContestOverview({ stats, isMobile }) {
 
 function BracketSection({ contest }) {
   const stats = contest.stats;
-  const roundPlayers = {
-    "Round 1": stats.sorted.map((player) => player.name),
-    "Round 2": stats.sorted.filter((player) => player.eliminated >= 2).map((player) => player.name),
-    "Round 3": stats.sorted.filter((player) => player.eliminated >= 3).map((player) => player.name),
-    "Round 4": stats.sorted.filter((player) => player.eliminated >= 4).map((player) => player.name),
-    Final: stats.sorted.filter((player) => player.eliminated >= 5).map((player) => player.name),
-  };
+  const playedRounds = CONTEST_ROUNDS
+    .map((round, roundIndex) => ({
+      round,
+      roundIndex,
+      players: stats.sorted.filter((player) => {
+        const detail = player.roundDetails[roundIndex];
+        return Boolean(detail?.bye) || detail?.score !== null;
+      }),
+    }))
+    .filter(({ players }) => players.length > 0);
 
   return (
     <div>
       <div style={{ overflowX: "auto" }}>
-        <div style={styles.bracket}>
-          {CONTEST_ROUNDS.map((round, roundIndex) => (
+        <div style={{
+          ...styles.bracket,
+          gridTemplateColumns: `repeat(${playedRounds.length}, minmax(135px, 1fr))`,
+          minWidth: Math.max(135 * playedRounds.length, 420),
+        }}>
+          {playedRounds.map(({ round, roundIndex, players }) => (
             <div key={round}>
               <div style={styles.bracketTitle}>{round}</div>
-              {roundPlayers[round].map((name) => {
-                const player = stats.players.find((entry) => entry.name === name);
+              {players.map((player) => {
                 const roundDetail = player.roundDetails[roundIndex];
                 const isBye = Boolean(roundDetail?.bye);
                 const eliminated = player.eliminated === roundIndex + 1;
                 const isWinner = player.winner && round === "Final";
                 return (
-                  <div key={name} style={{
+                  <div key={player.name} style={{
                     ...styles.bracketPlayer,
                     color: isWinner ? "#F97316" : eliminated ? "rgba(255,255,255,0.34)" : "white",
                     background: isWinner ? "rgba(249,115,22,0.18)" : "rgba(255,255,255,0.045)",
                     textDecoration: eliminated ? "line-through" : "none",
                   }}>
-                    <span>{isWinner ? "🏆 " : ""}{name}</span>
+                    <span>{isWinner ? "🏆 " : ""}{player.name}</span>
                     {isBye ? (
                       <strong style={styles.byeBadge}>BYE</strong>
                     ) : (

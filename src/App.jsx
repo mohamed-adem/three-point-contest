@@ -67,12 +67,11 @@ function buildRoundDetail(round) {
   };
 }
 
-function finishLabel(player) {
+function getFinishLabel(player, topCount) {
   if (player.winner) return "Winner";
-  if (player.eliminated === 5) return "Runner-up";
-  if (player.eliminated === 4) return "Top 4";
-  if (player.eliminated === 3) return "Top 6";
-  if (player.eliminated === 2) return "Top 8";
+  if (player.runnerUp) return "Runner-up";
+  if (player.eliminated === 1) return "R1 Exit";
+  if (topCount > 0) return `Top ${topCount}`;
   return "R1 Exit";
 }
 
@@ -131,13 +130,20 @@ function computeContestPlayerStats(name, data) {
 
 function buildContestStats(contest) {
   const players = Object.entries(contest.rawData).map(([name, data]) => computeContestPlayerStats(name, data));
-  const sorted = [...players].sort((a, b) => b.eliminated - a.eliminated || b.totalMakes - a.totalMakes);
+  const playersWithFinish = players.map((player) => ({
+    ...player,
+    finish: getFinishLabel(
+      player,
+      players.filter((entry) => entry.eliminated >= player.eliminated).length
+    ),
+  }));
+  const sortedWithFinish = [...playersWithFinish].sort((a, b) => b.eliminated - a.eliminated || b.totalMakes - a.totalMakes);
   const totalMakes = players.reduce((sum, player) => sum + player.totalMakes, 0);
   const totalAttempts = players.reduce((sum, player) => sum + player.totalAttempts, 0);
   const overallPct = totalAttempts ? Math.round((totalMakes / totalAttempts) * 100) : 0;
   const perfectRounds = players.reduce((sum, player) => sum + player.roundScores.filter((score) => score === 5).length, 0);
   const mostMakes = players.reduce((leader, player) => (player.totalMakes > leader.totalMakes ? player : leader), players[0]);
-  return { players, sorted, totalMakes, totalAttempts, overallPct, perfectRounds, mostMakes };
+  return { players: playersWithFinish, sorted: sortedWithFinish, totalMakes, totalAttempts, overallPct, perfectRounds, mostMakes };
 }
 
 function buildLeagueData(contests) {
@@ -194,7 +200,7 @@ function buildLeagueData(contests) {
         title: contest.title,
         date: contest.date,
         winner: contest.winner,
-        finish: finishLabel(player),
+        finish: player.finish,
         eliminated: player.eliminated,
         totalMakes: player.totalMakes,
         totalAttempts: player.totalAttempts,
@@ -593,7 +599,7 @@ function ContestOverview({ stats, isMobile }) {
             <div key={player.name} style={styles.mobileOverviewCard}>
               <div style={styles.mobileOverviewHead}>
                 <div>
-                  <div style={styles.eyebrow}>#{index + 1} / {finishLabel(player)}</div>
+                  <div style={styles.eyebrow}>#{index + 1} / {player.finish}</div>
                   <strong style={{ color: player.winner ? "#F97316" : "white" }}>{player.winner ? "🏆 " : ""}{player.name}</strong>
                 </div>
                 <div style={{ ...styles.recordValue, fontSize: 24, color: player.pct >= 50 ? "#2ecc71" : player.pct >= 30 ? "#f1c40f" : "#e74c3c" }}>{player.pct}%</div>
@@ -623,7 +629,7 @@ function ContestOverview({ stats, isMobile }) {
                 <tr key={player.name}>
                   <td style={styles.td}>{index + 1}</td>
                   <td style={{ ...styles.td, color: player.winner ? "#F97316" : "white", fontWeight: 700 }}>{player.winner ? "🏆 " : ""}{player.name}</td>
-                  <td style={styles.td}>{finishLabel(player)}</td>
+                  <td style={styles.td}>{player.finish}</td>
                   <td style={styles.td}>{player.roundsPlayed}</td>
                   <td style={styles.td}>{player.totalMakes}/{player.totalAttempts}</td>
                   <td style={{ ...styles.td, color: player.pct >= 50 ? "#2ecc71" : player.pct >= 30 ? "#f1c40f" : "#e74c3c", fontWeight: 700 }}>{player.pct}%</td>

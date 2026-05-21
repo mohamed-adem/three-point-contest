@@ -11,7 +11,7 @@ import {
 } from "./data/contestData";
 
 function parseShots(str) {
-  return str.split("").map(Number);
+  return str.split("").map((shot) => (shot === "x" ? null : Number(shot)));
 }
 
 function getZoneHeatColor(pct, hasAttempts = true) {
@@ -27,7 +27,7 @@ function sumRound(round) {
   if (!round || round === "?????") return null;
   if (round.bye) return null;
   if (typeof round === "object") return round.score ?? null;
-  return parseShots(round).reduce((total, shot) => total + shot, 0);
+  return parseShots(round).reduce((total, shot) => total + (shot ?? 0), 0);
 }
 
 function buildRoundDetail(round) {
@@ -61,9 +61,9 @@ function buildRoundDetail(round) {
   const shots = parseShots(round);
   return {
     raw: round,
-    score: shots.reduce((total, shot) => total + shot, 0),
+    score: shots.reduce((total, shot) => total + (shot ?? 0), 0),
     zonesKnown: true,
-    zoneStats: shots.map((shot) => ({ makes: shot, attempts: 1 })),
+    zoneStats: shots.map((shot) => ({ makes: shot ?? 0, attempts: shot === null ? 0 : 1 })),
   };
 }
 
@@ -95,6 +95,7 @@ function computeContestPlayerStats(name, data) {
     }
     const shots = parseShots(round);
     const roundMakes = shots.reduce((sum, shot, index) => {
+      if (shot === null) return sum;
       zoneStats[index].attempts += 1;
       zoneStats[index].makes += shot;
       totalAttempts += 1;

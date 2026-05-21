@@ -50,6 +50,33 @@ export const POWER_RANKINGS = [
 
 export const CONTESTS = [
   {
+    id: "contest-5",
+    title: "Contest 5",
+    date: "May 20, 2026",
+    winner: "Abdisalan",
+    runnerUp: "Mohamed Abdisalan",
+    rawData: {
+      "Mohamed Abdisalan": { r1: "11100", r2: "01101", r3: null, r4: null, r5: "x0011", eliminated: 5 },
+      Abdisalan: { r1: "10000", r2: "10010", r3: null, r4: null, r5: "10111", eliminated: 6, winner: true },
+      "Mohamed Adem": { r1: "10000", r2: "11000", r3: null, r4: null, r5: null, eliminated: 2, sdElim: true },
+      Majdi: { r1: { bye: true }, r2: "00100", r3: null, r4: null, r5: null, eliminated: 2 },
+      "Ahmed-Suhaib": { r1: "00001", r2: null, r3: null, r4: null, r5: null, eliminated: 1, sdElim: true },
+      "Mohamed Ahmed": { r1: "00000", r2: null, r3: null, r4: null, r5: null, eliminated: 1 },
+      Yahya: { r1: "00000", r2: null, r3: null, r4: null, r5: null, eliminated: 1 },
+    },
+    suddenDeath: {
+      "Round 1": [
+        { player: "Mohamed Adem", summary: "2/4", status: "advanced" },
+        { player: "Abdisalan", summary: "1/1", status: "advanced" },
+        { player: "Ahmed-Suhaib", summary: "1/4", status: "eliminated" },
+      ],
+      "Round 2": [
+        { player: "Abdisalan", summary: "1/4", status: "advanced" },
+        { player: "Mohamed Adem", summary: "0/4", status: "eliminated" },
+      ],
+    },
+  },
+  {
     id: "contest-4",
     title: "Contest 4",
     date: "May 13, 2026",

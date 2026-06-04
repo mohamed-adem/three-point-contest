@@ -1194,8 +1194,10 @@ function ZoneRecordsCourt({ title, zones, mode, variant, isMobile }) {
 }
 
 function PowerRankingsPage({ weeks, isMobile }) {
+  const overallTabId = "overall";
   const [activeWeekId, setActiveWeekId] = useState(weeks[0]?.id);
-  const activeWeekIndex = Math.max(weeks.findIndex((week) => week.id === activeWeekId), 0);
+  const isOverall = activeWeekId === overallTabId;
+  const activeWeekIndex = isOverall ? 0 : Math.max(weeks.findIndex((week) => week.id === activeWeekId), 0);
   const activeWeek = weeks[activeWeekIndex] || { rankings: [], title: "Rankings", date: "" };
   const previousWeek = weeks[activeWeekIndex + 1];
   const previousPositions = new Map((previousWeek?.rankings || []).map((name, index) => [name, index + 1]));
@@ -1212,51 +1214,138 @@ function PowerRankingsPage({ weeks, isMobile }) {
       <section style={styles.panel}>
         <div style={styles.segmented}>
           {weeks.map((week) => (
-            <button key={week.id} onClick={() => setActiveWeekId(week.id)} style={activeWeek.id === week.id ? styles.segmentActive : styles.segment}>
+            <button key={week.id} onClick={() => setActiveWeekId(week.id)} style={!isOverall && activeWeek.id === week.id ? styles.segmentActive : styles.segment}>
               {week.title}
             </button>
           ))}
+          <button onClick={() => setActiveWeekId(overallTabId)} style={isOverall ? styles.segmentActive : styles.segment}>
+            Overall
+          </button>
         </div>
-        <div style={{ marginTop: 18 }}>
-          <div style={styles.eyebrow}>{activeWeek.date}</div>
-          <h2 style={styles.h2}>Top {activeWeek.rankings.length}</h2>
-        </div>
-        <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
-          {activeWeek.rankings.map((name, index) => {
-            const currentRank = index + 1;
-            const previousRank = previousPositions.get(name);
-            const isNew = previousRank === undefined;
-            const delta = isNew ? null : previousRank - currentRank;
-            const trendStyle = isNew
-              ? styles.rankTrendNew
-              : delta > 0
-                ? styles.rankTrendUp
-                : delta < 0
-                  ? styles.rankTrendDown
-                  : styles.rankTrendSame;
-            const trendText = isNew
-              ? "NEW"
-              : delta > 0
-                ? `▲ ${Math.abs(delta)}`
-                : delta < 0
-                  ? `▼ ${Math.abs(delta)}`
-                  : "• 0";
 
-            return (
-            <div key={name} style={{ ...styles.recordRow, ...(isMobile ? styles.recordRowMobile : null) }}>
-              <div>
-                <strong>#{index + 1}</strong>
-                <div style={styles.muted}>Power ranking</div>
-              </div>
-              <div style={{ display: "grid", gap: 6, justifyItems: isMobile ? "start" : "end" }}>
-                <div style={{ ...styles.recordValue, fontSize: isMobile ? 24 : 30, textAlign: isMobile ? "left" : "right" }}>{name}</div>
-                <div style={trendStyle}>{trendText}</div>
-              </div>
+        {isOverall ? (
+          <PowerRankingBumpChart weeks={weeks} isMobile={isMobile} />
+        ) : (
+          <>
+            <div style={{ marginTop: 18 }}>
+              <div style={styles.eyebrow}>{activeWeek.date}</div>
+              <h2 style={styles.h2}>Top {activeWeek.rankings.length}</h2>
             </div>
+            <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
+              {activeWeek.rankings.map((name, index) => {
+                const currentRank = index + 1;
+                const previousRank = previousPositions.get(name);
+                const isNew = previousRank === undefined;
+                const delta = isNew ? null : previousRank - currentRank;
+                const trendStyle = isNew
+                  ? styles.rankTrendNew
+                  : delta > 0
+                    ? styles.rankTrendUp
+                    : delta < 0
+                      ? styles.rankTrendDown
+                      : styles.rankTrendSame;
+                const trendText = isNew
+                  ? "NEW"
+                  : delta > 0
+                    ? `▲ ${Math.abs(delta)}`
+                    : delta < 0
+                      ? `▼ ${Math.abs(delta)}`
+                      : "• 0";
+
+                return (
+                <div key={name} style={{ ...styles.recordRow, ...(isMobile ? styles.recordRowMobile : null) }}>
+                  <div>
+                    <strong>#{index + 1}</strong>
+                    <div style={styles.muted}>Power ranking</div>
+                  </div>
+                  <div style={{ display: "grid", gap: 6, justifyItems: isMobile ? "start" : "end" }}>
+                    <div style={{ ...styles.recordValue, fontSize: isMobile ? 24 : 30, textAlign: isMobile ? "left" : "right" }}>{name}</div>
+                    <div style={trendStyle}>{trendText}</div>
+                  </div>
+                </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function PowerRankingBumpChart({ weeks, isMobile }) {
+  const chronologicalWeeks = [...weeks].reverse();
+  const players = Array.from(new Set(chronologicalWeeks.flatMap((week) => week.rankings)));
+  const maxRank = Math.max(...chronologicalWeeks.map((week) => week.rankings.length));
+  const unrankedRank = maxRank + 1;
+  const chartWidth = isMobile ? 980 : 1120;
+  const chartHeight = isMobile ? 720 : 660;
+  const margin = { top: 42, right: 176, bottom: 54, left: 48 };
+  const innerWidth = chartWidth - margin.left - margin.right;
+  const innerHeight = chartHeight - margin.top - margin.bottom;
+  const rankStep = innerHeight / (unrankedRank - 1);
+  const weekStep = innerWidth / Math.max(chronologicalWeeks.length - 1, 1);
+  const colors = ["#F97316", "#2ecc71", "#3498db", "#f1c40f", "#e74c3c", "#9b59b6", "#1abc9c", "#f39c12", "#ecf0f1", "#e67e22", "#7ed957", "#ff6b6b", "#5dade2", "#d2b4de", "#a3e4d7", "#f8c471"];
+  const rankMaps = chronologicalWeeks.map((week) => new Map(week.rankings.map((name, index) => [name, index + 1])));
+  const yForRank = (rank) => margin.top + (rank - 1) * rankStep;
+  const xForWeek = (index) => margin.left + index * weekStep;
+
+  return (
+    <div style={{ marginTop: 18 }}>
+      <div style={styles.eyebrow}>All weeks</div>
+      <h2 style={styles.h2}>Ranking movement</h2>
+      <div style={styles.bumpChartScroll}>
+        <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} role="img" aria-label="Power ranking movement by week" style={styles.bumpChart}>
+          {[...Array(unrankedRank)].map((_, index) => {
+            const rank = index + 1;
+            const y = yForRank(rank);
+            return (
+              <g key={rank}>
+                <line x1={margin.left} x2={chartWidth - margin.right} y1={y} y2={y} stroke="rgba(255,255,255,0.07)" />
+                <text x={margin.left - 14} y={y + 4} textAnchor="end" fill="rgba(255,255,255,0.42)" fontSize="11">
+                  {rank === unrankedRank ? "UR" : `#${rank}`}
+                </text>
+              </g>
             );
           })}
-        </div>
-      </section>
+
+          {chronologicalWeeks.map((week, index) => {
+            const x = xForWeek(index);
+            return (
+              <g key={week.id}>
+                <line x1={x} x2={x} y1={margin.top - 14} y2={chartHeight - margin.bottom + 14} stroke="rgba(255,255,255,0.08)" />
+                <text x={x} y={chartHeight - 22} textAnchor="middle" fill="rgba(255,255,255,0.72)" fontSize="12" fontWeight="700">
+                  {week.title}
+                </text>
+              </g>
+            );
+          })}
+
+          {players.map((player, playerIndex) => {
+            const points = rankMaps.map((rankMap, weekIndex) => {
+              const rank = rankMap.get(player) || unrankedRank;
+              return { x: xForWeek(weekIndex), y: yForRank(rank), rank };
+            });
+            const line = points.map((point) => `${point.x},${point.y}`).join(" ");
+            const color = colors[playerIndex % colors.length];
+            const latestPoint = points[points.length - 1];
+            return (
+              <g key={player}>
+                <polyline points={line} fill="none" stroke={color} strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round" opacity="0.82" />
+                {points.map((point, index) => (
+                  <circle key={`${player}-${index}`} cx={point.x} cy={point.y} r="4" fill="#0b0b0b" stroke={color} strokeWidth="2" />
+                ))}
+                <text x={latestPoint.x + 12} y={latestPoint.y + 4} fill={color} fontSize="11" fontWeight="700">
+                  {player}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+      <div style={{ ...styles.muted, marginTop: 10 }}>
+        UR means the player was not ranked that week.
+      </div>
     </div>
   );
 }
@@ -2100,6 +2189,19 @@ const styles = {
     fontSize: 11,
     fontWeight: 700,
     letterSpacing: 1,
+  },
+  bumpChartScroll: {
+    marginTop: 16,
+    overflowX: "auto",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 8,
+    background: "rgba(255,255,255,0.025)",
+  },
+  bumpChart: {
+    display: "block",
+    minWidth: 980,
+    width: "100%",
+    height: "auto",
   },
   courtRecordShell: {
     position: "relative",

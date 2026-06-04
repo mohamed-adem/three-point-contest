@@ -168,6 +168,7 @@ function buildLeagueData(contests) {
           zeroRounds: 0,
           suddenDeathAppearances: 0,
           suddenDeathWins: 0,
+          suddenDeathEliminations: 0,
           totalMakes: 0,
           totalAttempts: 0,
           totalRounds: 0,
@@ -218,7 +219,11 @@ function buildLeagueData(contests) {
         const isWin = entry.status
           ? entry.status === "advanced" || entry.status === "winner"
           : Boolean(entry.made);
+        const isElimination = entry.status
+          ? entry.status === "eliminated"
+          : entry.made === false;
         aggregate.suddenDeathWins += isWin ? 1 : 0;
+        aggregate.suddenDeathEliminations += isElimination ? 1 : 0;
       });
     });
   });
@@ -227,6 +232,7 @@ function buildLeagueData(contests) {
     .map((player) => ({
       ...player,
       fgPct: player.totalAttempts ? Math.round((player.totalMakes / player.totalAttempts) * 100) : 0,
+      donutGangPct: player.appearances ? Math.round((player.donutGangAppearances / player.appearances) * 100) : 0,
       avgFinish: player.appearances ? (player.totalFinishScore / player.appearances).toFixed(2) : "-",
       avgRoundScore: player.totalRounds ? (player.totalMakes / player.totalRounds).toFixed(2) : "-",
     }))
@@ -240,10 +246,12 @@ function buildLeagueData(contests) {
     mostMakes: getRecordLeaders(players, "totalMakes"),
     bestRound: getRecordLeaders(players, "bestRound"),
     donutGang: getRecordLeaders(players, "donutGangAppearances"),
+    donutGangPct: getRecordLeaders(players, "donutGangPct"),
     zeroRounds: getRecordLeaders(players, "zeroRounds"),
     firstRoundExits: getRecordLeaders(players, "firstRoundExits"),
     suddenDeathApps: getRecordLeaders(players, "suddenDeathAppearances"),
     suddenDeathWins: getRecordLeaders(players, "suddenDeathWins"),
+    suddenDeathElims: getRecordLeaders(players, "suddenDeathEliminations"),
     zones: ZONES.map((zone, index) => ({
       zone,
       label: ZONE_LABELS[index],
@@ -988,6 +996,7 @@ function RecordsPage({ records, isMobile }) {
       title: "Cold / Chaos",
       items: [
         ["Most Donut Gang Appearances", records.donutGang],
+        ["Highest Donut Gang %", records.donutGangPct, "%"],
         ["Most 0/5 Rounds", records.zeroRounds],
         ["Most First-round Exits", records.firstRoundExits],
       ],
@@ -997,6 +1006,7 @@ function RecordsPage({ records, isMobile }) {
       items: [
         ["Most Sudden Death Appearances", records.suddenDeathApps],
         ["King of Sudden Death", records.suddenDeathWins],
+        ["Choker of Sudden Death", records.suddenDeathElims],
       ],
     },
   ];

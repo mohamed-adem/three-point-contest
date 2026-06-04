@@ -233,6 +233,7 @@ function buildLeagueData(contests) {
       ...player,
       fgPct: player.totalAttempts ? Math.round((player.totalMakes / player.totalAttempts) * 100) : 0,
       donutGangPct: player.appearances ? Math.round((player.donutGangAppearances / player.appearances) * 100) : 0,
+      suddenDeathEliminationPct: player.suddenDeathAppearances ? Math.round((player.suddenDeathEliminations / player.suddenDeathAppearances) * 100) : 0,
       avgFinish: player.appearances ? (player.totalFinishScore / player.appearances).toFixed(2) : "-",
       avgRoundScore: player.totalRounds ? (player.totalMakes / player.totalRounds).toFixed(2) : "-",
     }))
@@ -251,7 +252,7 @@ function buildLeagueData(contests) {
     firstRoundExits: getRecordLeaders(players, "firstRoundExits"),
     suddenDeathApps: getRecordLeaders(players, "suddenDeathAppearances"),
     suddenDeathWins: getRecordLeaders(players, "suddenDeathWins"),
-    suddenDeathElims: getRecordLeaders(players, "suddenDeathEliminations"),
+    suddenDeathElims: getSuddenDeathEliminationPctRecord(players),
     zones: ZONES.map((zone, index) => ({
       zone,
       label: ZONE_LABELS[index],
@@ -285,6 +286,21 @@ function getDonutGangPctRecord(players) {
   return {
     value: bestPct,
     leaders: pctLeaders.filter((player) => player.donutGangAppearances === mostDonuts),
+  };
+}
+
+function getSuddenDeathEliminationPctRecord(players) {
+  const bestPct = Math.max(...players.map((player) => player.suddenDeathEliminationPct));
+  const pctLeaders = players.filter((player) => player.suddenDeathEliminationPct === bestPct && bestPct > 0);
+
+  if (!pctLeaders.length) {
+    return { value: 0, leaders: [] };
+  }
+
+  const mostEliminations = Math.max(...pctLeaders.map((player) => player.suddenDeathEliminations));
+  return {
+    value: bestPct,
+    leaders: pctLeaders.filter((player) => player.suddenDeathEliminations === mostEliminations),
   };
 }
 
@@ -1021,7 +1037,7 @@ function RecordsPage({ records, isMobile }) {
       items: [
         ["Most Sudden Death Appearances", records.suddenDeathApps],
         ["King of Sudden Death", records.suddenDeathWins],
-        ["Choker of Sudden Death", records.suddenDeathElims],
+        ["Choker of Sudden Death", records.suddenDeathElims, "%", "suddenDeathEliminationPct"],
       ],
     },
   ];
@@ -1359,6 +1375,9 @@ function formatRecordLeaders(record, kind) {
   }
   if (kind === "donutGangPct") {
     return record.leaders.map((leader) => `${leader.name} (${leader.donutGangAppearances})`).join(", ");
+  }
+  if (kind === "suddenDeathEliminationPct") {
+    return record.leaders.map((leader) => `${leader.name} (${leader.suddenDeathEliminations}/${leader.suddenDeathAppearances})`).join(", ");
   }
   return record.leaders.map((leader) => leader.name).join(", ");
 }

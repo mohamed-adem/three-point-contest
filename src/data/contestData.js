@@ -15,7 +15,7 @@ export const CONTEST_ROUNDS = ["Round 1", "Round 2", "Round 3", "Round 4", "Fina
 export const POWER_RANKING_WEEKS = [
   {
     id: "2026-06-03",
-    title: "Jun 3",
+    title: "Week 7",
     date: "June 3, 2026",
     rankings: [
       "Abdisalan",
@@ -37,7 +37,7 @@ export const POWER_RANKING_WEEKS = [
   },
   {
     id: "2026-05-24",
-    title: "May 24",
+    title: "Week 6",
     date: "May 24, 2026",
     rankings: [
       "Abdisalan",
@@ -59,7 +59,7 @@ export const POWER_RANKING_WEEKS = [
   },
   {
     id: "2026-05-20",
-    title: "May 20",
+    title: "Week 5",
     date: "May 20, 2026",
     rankings: [
       "Majdi",
@@ -81,7 +81,7 @@ export const POWER_RANKING_WEEKS = [
   },
   {
     id: "2026-05-13",
-    title: "May 13",
+    title: "Week 4",
     date: "May 13, 2026",
     rankings: [
       "Majdi",
@@ -103,7 +103,7 @@ export const POWER_RANKING_WEEKS = [
   },
   {
     id: "2026-05-06",
-    title: "May 6",
+    title: "Week 3",
     date: "May 6, 2026",
     rankings: [
       "Mohamed Abdisalan",
@@ -125,7 +125,7 @@ export const POWER_RANKING_WEEKS = [
   },
   {
     id: "2026-04-29",
-    title: "Apr 29",
+    title: "Week 2",
     date: "April 29, 2026",
     rankings: [
       "Mohamed Adem",
@@ -146,7 +146,7 @@ export const POWER_RANKING_WEEKS = [
   },
   {
     id: "2026-04-26",
-    title: "Apr 26",
+    title: "Week 1",
     date: "April 26, 2026",
     rankings: [
       "Mohamed Abdisalan",

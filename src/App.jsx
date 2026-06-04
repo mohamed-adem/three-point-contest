@@ -246,7 +246,7 @@ function buildLeagueData(contests) {
     mostMakes: getRecordLeaders(players, "totalMakes"),
     bestRound: getRecordLeaders(players, "bestRound"),
     donutGang: getRecordLeaders(players, "donutGangAppearances"),
-    donutGangPct: getRecordLeaders(players, "donutGangPct"),
+    donutGangPct: getDonutGangPctRecord(players),
     zeroRounds: getRecordLeaders(players, "zeroRounds"),
     firstRoundExits: getRecordLeaders(players, "firstRoundExits"),
     suddenDeathApps: getRecordLeaders(players, "suddenDeathAppearances"),
@@ -270,6 +270,21 @@ function getRecordLeaders(players, key) {
   return {
     value: best,
     leaders: players.filter((player) => player[key] === best && best > 0),
+  };
+}
+
+function getDonutGangPctRecord(players) {
+  const bestPct = Math.max(...players.map((player) => player.donutGangPct));
+  const pctLeaders = players.filter((player) => player.donutGangPct === bestPct && bestPct > 0);
+
+  if (!pctLeaders.length) {
+    return { value: 0, leaders: [] };
+  }
+
+  const mostDonuts = Math.max(...pctLeaders.map((player) => player.donutGangAppearances));
+  return {
+    value: bestPct,
+    leaders: pctLeaders.filter((player) => player.donutGangAppearances === mostDonuts),
   };
 }
 
@@ -996,7 +1011,7 @@ function RecordsPage({ records, isMobile }) {
       title: "Cold / Chaos",
       items: [
         ["Most Donut Gang Appearances", records.donutGang],
-        ["Highest Donut Gang %", records.donutGangPct, "%"],
+        ["Highest Donut Gang %", records.donutGangPct, "%", "donutGangPct"],
         ["Most 0/5 Rounds", records.zeroRounds],
         ["Most First-round Exits", records.firstRoundExits],
       ],
@@ -1341,6 +1356,9 @@ function formatRecordLeaders(record, kind) {
   }
   if (kind === "zonePct") {
     return record.leaders.map((leader) => `${leader.name} (${leader.makes}/${leader.attempts})`).join(", ");
+  }
+  if (kind === "donutGangPct") {
+    return record.leaders.map((leader) => `${leader.name} (${leader.donutGangAppearances})`).join(", ");
   }
   return record.leaders.map((leader) => leader.name).join(", ");
 }

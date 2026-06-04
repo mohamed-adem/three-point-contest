@@ -2,8 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   CONTEST_ROUNDS,
   CONTESTS,
-  POWER_RANKINGS,
-  PREVIOUS_POWER_RANKINGS,
+  POWER_RANKING_WEEKS,
   ROUND_KEYS,
   ROUND_LABELS,
   ZONE_LABELS,
@@ -1194,23 +1193,36 @@ function ZoneRecordsCourt({ title, zones, mode, variant, isMobile }) {
   );
 }
 
-function PowerRankingsPage({ rankings, isMobile }) {
-  const previousPositions = new Map(PREVIOUS_POWER_RANKINGS.map((name, index) => [name, index + 1]));
+function PowerRankingsPage({ weeks, isMobile }) {
+  const [activeWeekId, setActiveWeekId] = useState(weeks[0]?.id);
+  const activeWeekIndex = Math.max(weeks.findIndex((week) => week.id === activeWeekId), 0);
+  const activeWeek = weeks[activeWeekIndex] || { rankings: [], title: "Rankings", date: "" };
+  const previousWeek = weeks[activeWeekIndex + 1];
+  const previousPositions = new Map((previousWeek?.rankings || []).map((name, index) => [name, index + 1]));
 
   return (
     <div>
       <div style={styles.pageHead}>
         <div>
           <div style={styles.eyebrow}>Power Rankings</div>
-          <h1 style={styles.h1}>Current power rankings</h1>
+          <h1 style={styles.h1}>Power rankings</h1>
         </div>
       </div>
 
       <section style={styles.panel}>
-        <div style={styles.eyebrow}>Subjective order</div>
-        <h2 style={styles.h2}>Top 14</h2>
+        <div style={styles.segmented}>
+          {weeks.map((week) => (
+            <button key={week.id} onClick={() => setActiveWeekId(week.id)} style={activeWeek.id === week.id ? styles.segmentActive : styles.segment}>
+              {week.title}
+            </button>
+          ))}
+        </div>
+        <div style={{ marginTop: 18 }}>
+          <div style={styles.eyebrow}>{activeWeek.date}</div>
+          <h2 style={styles.h2}>Top {activeWeek.rankings.length}</h2>
+        </div>
         <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
-          {rankings.map((name, index) => {
+          {activeWeek.rankings.map((name, index) => {
             const currentRank = index + 1;
             const previousRank = previousPositions.get(name);
             const isNew = previousRank === undefined;
@@ -1454,7 +1466,7 @@ export default function App() {
         {page === "rules" && <RulesPage />}
         {page === "contests" && <ContestsPage contests={league.contests} activeContestId={activeContestId} onSelectContest={setActiveContestId} isMobile={isMobile} />}
         {page === "players" && <PlayersPage players={league.players} activePlayerName={activePlayerName} onOpenPlayer={openPlayer} isMobile={isMobile} />}
-        {page === "power-rankings" && <PowerRankingsPage rankings={POWER_RANKINGS} isMobile={isMobile} />}
+        {page === "power-rankings" && <PowerRankingsPage weeks={POWER_RANKING_WEEKS} isMobile={isMobile} />}
         {page === "records" && <RecordsPage records={league.records} isMobile={isMobile} />}
       </main>
 

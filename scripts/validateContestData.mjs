@@ -76,7 +76,6 @@ function validatePlayer(contest, playerName, playerData) {
 
   ROUND_KEYS.forEach((roundKey) => {
     if (!(roundKey in playerData)) {
-      addError(context, `missing ${roundKey}`);
       return;
     }
 

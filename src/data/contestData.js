@@ -33,6 +33,7 @@ export const POWER_RANKING_WEEKS = [
       "Sebri",
       "Mohamed Salad",
       "Abdimanan",
+      "Abdulrahman",
       "Abdiaziz",
     ],
   },

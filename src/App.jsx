@@ -74,20 +74,8 @@ function getFinishLabel(player, topCount) {
   return "R1 Exit";
 }
 
-function hasPlayedRound(detail) {
-  return Boolean(detail?.bye) || detail?.score !== null;
-}
-
-function getContestRoundCount(rawData) {
-  return Object.values(rawData).reduce((maxRound, data) => {
-    const roundDetails = ROUND_KEYS.map((key) => buildRoundDetail(data[key] ?? null));
-    const lastPlayedIndex = roundDetails.reduce((lastIndex, detail, index) => (hasPlayedRound(detail) ? index : lastIndex), -1);
-    return Math.max(maxRound, lastPlayedIndex + 1);
-  }, 0);
-}
-
-function computeContestPlayerStats(name, data, finalRoundNumber) {
-  const rounds = ROUND_KEYS.map((key) => data[key] ?? null);
+function computeContestPlayerStats(name, data) {
+  const rounds = ROUND_KEYS.map((key) => data[key]);
   const roundDetails = rounds.map(buildRoundDetail);
   const zoneStats = ZONES.map(() => ({ makes: 0, attempts: 0 }));
   let totalMakes = 0;
@@ -133,16 +121,14 @@ function computeContestPlayerStats(name, data, finalRoundNumber) {
     roundsPlayed: validScores.length,
     eliminated: data.eliminated,
     winner: Boolean(data.winner),
-    runnerUp: Boolean(data.runnerUp) || data.eliminated === finalRoundNumber,
+    runnerUp: data.eliminated === 5,
     roundOneDonut,
     firstRoundExit: data.eliminated === 1,
   };
 }
 
 function buildContestStats(contest) {
-  const roundCount = getContestRoundCount(contest.rawData);
-  const finalRoundNumber = roundCount || ROUND_KEYS.length;
-  const players = Object.entries(contest.rawData).map(([name, data]) => computeContestPlayerStats(name, data, finalRoundNumber));
+  const players = Object.entries(contest.rawData).map(([name, data]) => computeContestPlayerStats(name, data));
   const playersWithFinish = players.map((player) => ({
     ...player,
     finish: getFinishLabel(
@@ -156,7 +142,7 @@ function buildContestStats(contest) {
   const overallPct = totalAttempts ? Math.round((totalMakes / totalAttempts) * 100) : 0;
   const perfectRounds = players.reduce((sum, player) => sum + player.roundScores.filter((score) => score === 5).length, 0);
   const mostMakes = players.reduce((leader, player) => (player.totalMakes > leader.totalMakes ? player : leader), players[0]);
-  return { players: playersWithFinish, sorted: sortedWithFinish, totalMakes, totalAttempts, overallPct, perfectRounds, mostMakes, roundCount, finalRoundNumber };
+  return { players: playersWithFinish, sorted: sortedWithFinish, totalMakes, totalAttempts, overallPct, perfectRounds, mostMakes };
 }
 
 function buildLeagueData(contests) {
@@ -196,7 +182,7 @@ function buildLeagueData(contests) {
       aggregate.appearances += 1;
       aggregate.wins += player.winner ? 1 : 0;
       aggregate.runnerUps += player.runnerUp ? 1 : 0;
-      aggregate.finalsAppearances += player.eliminated >= contest.stats.finalRoundNumber ? 1 : 0;
+      aggregate.finalsAppearances += player.eliminated >= 5 ? 1 : 0;
       aggregate.firstRoundExits += player.firstRoundExit ? 1 : 0;
       aggregate.donutGangAppearances += player.roundOneDonut ? 1 : 0;
       aggregate.zeroRounds += player.zeroRounds;
@@ -219,8 +205,8 @@ function buildLeagueData(contests) {
         totalMakes: player.totalMakes,
         totalAttempts: player.totalAttempts,
         pct: player.pct,
-        roundDetails: player.roundDetails.slice(0, contest.stats.roundCount),
-        roundScores: player.roundScores.slice(0, contest.stats.roundCount),
+        roundDetails: player.roundDetails,
+        roundScores: player.roundScores,
       });
     });
 

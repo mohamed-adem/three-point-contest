@@ -14,6 +14,30 @@ export const CONTEST_ROUNDS = ["Round 1", "Round 2", "Round 3", "Round 4", "Roun
 
 export const POWER_RANKING_WEEKS = [
   {
+    id: "2026-06-24",
+    title: "Week 9",
+    date: "June 24, 2026",
+    rankings: [
+      "Mohamed Abdisalan",
+      "Abdisalan",
+      "Mohamed Omar",
+      "Salaad Abdi",
+      "Muhsin",
+      "Mohamed Ahmed",
+      "AhmedNur",
+      "Ahmed-Suhaib",
+      "Mohamed Adem",
+      "Khalid",
+      "Majdi",
+      "Sebri",
+      "Yahya",
+      "Mohamed Salad",
+      "Abdimanan",
+      "Abdulrahman",
+      "Abdiaziz",
+    ],
+  },
+  {
     id: "2026-06-10",
     title: "Week 8",
     date: "June 10, 2026",
@@ -194,6 +218,32 @@ export const POWER_RANKINGS = POWER_RANKING_WEEKS[0].rankings;
 export const PREVIOUS_POWER_RANKINGS = POWER_RANKING_WEEKS[1].rankings;
 
 export const CONTESTS = [
+  {
+    id: "contest-9",
+    title: "Contest 9",
+    date: "June 24, 2026",
+    winner: "Mohamed Abdisalan",
+    runnerUp: "Abdisalan",
+    rawData: {
+      "Mohamed Ahmed": { r1: "00100", r2: "00000", r3: null, r4: null, r5: null, r6: null, eliminated: 2 },
+      AhmedNur: { r1: "00010", r2: "00010", r3: null, r4: null, r5: null, r6: null, eliminated: 2, sdElim: true },
+      Khalid: { r1: "00000", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1 },
+      "Mohamed Abdisalan": { r1: "00001", r2: "11011", r3: "01100", r4: null, r5: null, r6: "11000", eliminated: 7, winner: true },
+      Muhsin: { r1: "00000", r2: "10000", r3: "00010", r4: null, r5: null, r6: null, eliminated: 3, sdElim: true },
+      "Salaad Abdi": { r1: "00000", r2: "11010", r3: "00000", r4: null, r5: null, r6: null, eliminated: 3 },
+      Abdisalan: { r1: { bye: true }, r2: "00111", r3: "10000", r4: null, r5: null, r6: "00000", eliminated: 6 },
+    },
+    suddenDeath: {
+      "Round 2": [
+        { player: "Muhsin", summary: "1/1", status: "advanced" },
+        { player: "AhmedNur", summary: "0/1", status: "eliminated" },
+      ],
+      "Round 3": [
+        { player: "Abdisalan", summary: "3/4", status: "advanced" },
+        { player: "Muhsin", summary: "2/4", status: "eliminated" },
+      ],
+    },
+  },
   {
     id: "contest-8",
     title: "Contest 8",

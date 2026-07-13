@@ -14,6 +14,30 @@ export const CONTEST_ROUNDS = ["Round 1", "Round 2", "Round 3", "Round 4", "Roun
 
 export const POWER_RANKING_WEEKS = [
   {
+    id: "2026-07-12",
+    title: "Week 10",
+    date: "July 12, 2026",
+    rankings: [
+      "Mohamed Abdisalan",
+      "Mohamed Ahmed",
+      "Khalid",
+      "Abdisalan",
+      "Majdi",
+      "Mohamed Omar",
+      "Salaad Abdi",
+      "Muhsin",
+      "Yahya",
+      "AhmedNur",
+      "Ahmed-Suhaib",
+      "Mohamed Adem",
+      "Sebri",
+      "Mohamed Salad",
+      "Abdimanan",
+      "Abdulrahman",
+      "Abdiaziz",
+    ],
+  },
+  {
     id: "2026-06-24",
     title: "Week 9",
     date: "June 24, 2026",
@@ -218,6 +242,36 @@ export const POWER_RANKINGS = POWER_RANKING_WEEKS[0].rankings;
 export const PREVIOUS_POWER_RANKINGS = POWER_RANKING_WEEKS[1].rankings;
 
 export const CONTESTS = [
+  {
+    id: "contest-10",
+    title: "Contest 10",
+    date: "July 12, 2026",
+    winner: "Mohamed Abdisalan",
+    runnerUp: "Mohamed Ahmed",
+    rawData: {
+      Majdi: { r1: "01001", r2: "00100", r3: "01100", r4: null, r5: null, r6: null, eliminated: 3, sdElim: true },
+      Khalid: { r1: "00110", r2: "11010", r3: "00000", r4: null, r5: null, r6: null, eliminated: 3 },
+      AhmedNur: { r1: "01000", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1, sdElim: true },
+      "Mohamed Ahmed": { r1: "00010", r2: "00010", r3: "00011", r4: null, r5: null, r6: "00000", eliminated: 6 },
+      Abdisalan: { r1: "01000", r2: "00000", r3: null, r4: null, r5: null, r6: null, eliminated: 2 },
+      Muhsin: { r1: "00000", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1 },
+      Yahya: { r1: "00100", r2: "00000", r3: null, r4: null, r5: null, r6: null, eliminated: 2 },
+      "Mohamed Abdisalan": { r1: { bye: true }, r2: "00100", r3: "01010", r4: null, r5: null, r6: "11100", eliminated: 7, winner: true },
+    },
+    suddenDeath: {
+      "Round 1": [
+        { player: "AhmedNur", summary: "0/12", status: "eliminated" },
+        { player: "Abdisalan", summary: "1/12", status: "advanced" },
+        { player: "Yahya", summary: "1/3", status: "advanced" },
+        { player: "Mohamed Ahmed", summary: "1/1", status: "advanced" },
+      ],
+      "Round 3": [
+        { player: "Majdi", summary: "0/1", status: "eliminated" },
+        { player: "Mohamed Ahmed", summary: "1/1", status: "advanced" },
+        { player: "Mohamed Abdisalan", summary: "1/1", status: "advanced" },
+      ],
+    },
+  },
   {
     id: "contest-9",
     title: "Contest 9",

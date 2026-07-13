@@ -19,6 +19,7 @@ export const POWER_RANKING_WEEKS = [
     date: "July 12, 2026",
     rankings: [
       "Mohamed Abdisalan",
+      "Mohamed Adem",
       "Mohamed Ahmed",
       "Khalid",
       "Abdisalan",
@@ -29,7 +30,6 @@ export const POWER_RANKING_WEEKS = [
       "Yahya",
       "AhmedNur",
       "Ahmed-Suhaib",
-      "Mohamed Adem",
       "Sebri",
       "Mohamed Salad",
       "Abdimanan",

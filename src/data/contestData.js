@@ -14,6 +14,30 @@ export const CONTEST_ROUNDS = ["Round 1", "Round 2", "Round 3", "Round 4", "Roun
 
 export const POWER_RANKING_WEEKS = [
   {
+    id: "2026-07-15",
+    title: "Week 11",
+    date: "July 15, 2026",
+    rankings: [
+      "Mohamed Abdisalan",
+      "Mohamed Adem",
+      "Majdi",
+      "Mohamed Ahmed",
+      "Yahya",
+      "Khalid",
+      "Salaad Abdi",
+      "Mohamed Omar",
+      "Abdisalan",
+      "Muhsin",
+      "Ahmed-Suhaib",
+      "AhmedNur",
+      "Sebri",
+      "Mohamed Salad",
+      "Abdimanan",
+      "Abdulrahman",
+      "Abdiaziz",
+    ],
+  },
+  {
     id: "2026-07-12",
     title: "Week 10",
     date: "July 12, 2026",
@@ -242,6 +266,31 @@ export const POWER_RANKINGS = POWER_RANKING_WEEKS[0].rankings;
 export const PREVIOUS_POWER_RANKINGS = POWER_RANKING_WEEKS[1].rankings;
 
 export const CONTESTS = [
+  {
+    id: "contest-11",
+    title: "Contest 11",
+    date: "July 15, 2026",
+    winner: "Mohamed Abdisalan",
+    runnerUp: "Majdi",
+    rawData: {
+      "Mohamed Ahmed": { r1: "00101", r2: "01000", r3: "10110", r4: "00000", r5: null, r6: null, eliminated: 4 },
+      "Ahmed-Suhaib": { r1: "00001", r2: "00000", r3: null, r4: null, r5: null, r6: null, eliminated: 2 },
+      Muhsin: { r1: "00001", r2: "00000", r3: null, r4: null, r5: null, r6: null, eliminated: 2 },
+      Majdi: { r1: "01110", r2: "11001", r3: "01110", r4: "01100", r5: null, r6: "01001", eliminated: 6 },
+      Abdisalan: { r1: "00000", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1 },
+      Yahya: { r1: "10000", r2: "01001", r3: "01010", r4: "00010", r5: null, r6: null, eliminated: 4, sdElim: true },
+      AhmedNur: { r1: "00000", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1 },
+      "Salaad Abdi": { r1: "10111", r2: "00100", r3: "00110", r4: null, r5: null, r6: null, eliminated: 3, sdElim: true },
+      Khalid: { r1: "01101", r2: "10100", r3: "01000", r4: null, r5: null, r6: null, eliminated: 3 },
+      "Mohamed Abdisalan": { r1: { bye: true }, r2: "10111", r3: "01101", r4: "11101", r5: null, r6: "01110", eliminated: 7, winner: true },
+    },
+    suddenDeath: {
+      "Round 3": [
+        { player: "Yahya", summary: "1/2", status: "advanced" },
+        { player: "Salaad Abdi", summary: "0/2", status: "eliminated" },
+      ],
+    },
+  },
   {
     id: "contest-10",
     title: "Contest 10",

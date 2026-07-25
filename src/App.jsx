@@ -256,6 +256,7 @@ function buildLeagueData(contests) {
     mostWins: getRecordLeaders(players, "wins"),
     mostRunnerUps: getRecordLeaders(players, "runnerUps"),
     mostFinals: getRecordLeaders(players, "finalsAppearances"),
+    bestAttendance: getAttendanceRecord(players, contestEntries.length),
     highestFG: getRecordLeaders(players, "fgPct"),
     mostMakes: getRecordLeaders(players, "totalMakes"),
     bestRound: getRecordLeaders(players, "bestRound"),
@@ -284,6 +285,17 @@ function getRecordLeaders(players, key) {
   return {
     value: best,
     leaders: players.filter((player) => player[key] === best && best > 0),
+  };
+}
+
+function getAttendanceRecord(players, totalContests) {
+  const mostAppearances = Math.max(...players.map((player) => player.appearances));
+  const attendancePct = totalContests ? Math.round((mostAppearances / totalContests) * 100) : 0;
+
+  return {
+    value: attendancePct,
+    totalContests,
+    leaders: players.filter((player) => player.appearances === mostAppearances && mostAppearances > 0),
   };
 }
 
@@ -1029,6 +1041,12 @@ function RecordsPage({ records, isMobile }) {
       ],
     },
     {
+      title: "Attendance",
+      items: [
+        ["Best Attendance", records.bestAttendance, "%", "attendance"],
+      ],
+    },
+    {
       title: "Shooting",
       items: [
         ["Highest Career FG%", records.highestFG, "%"],
@@ -1601,6 +1619,11 @@ function formatRecordLeaders(record, kind) {
   }
   if (kind === "suddenDeathEliminationPct") {
     return record.leaders.map((leader) => `${leader.name} (${leader.suddenDeathEliminations}/${leader.suddenDeathAppearances})`).join(", ");
+  }
+  if (kind === "attendance") {
+    return record.leaders
+      .map((leader) => `${leader.name} appeared in ${leader.appearances}/${record.totalContests} total comps (${record.value}%) / ${leader.wins} wins`)
+      .join(", ");
   }
   return record.leaders.map((leader) => leader.name).join(", ");
 }

@@ -266,6 +266,7 @@ function buildLeagueData(contests) {
     firstRoundExits: getRecordLeaders(players, "firstRoundExits"),
     suddenDeathApps: getRecordLeaders(players, "suddenDeathAppearances"),
     suddenDeathWins: getRecordLeaders(players, "suddenDeathWins"),
+    suddenDeathLosses: getRecordLeaders(players, "suddenDeathEliminations"),
     suddenDeathElims: getSuddenDeathEliminationPctRecord(players),
     zones: ZONES.map((zone, index) => ({
       zone,
@@ -1031,6 +1032,10 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
 
 function RecordsPage({ records, isMobile }) {
   const [zoneMode, setZoneMode] = useState("totals");
+  const [suddenDeathChokeMode, setSuddenDeathChokeMode] = useState("losses");
+  const chokerRecord = suddenDeathChokeMode === "losses"
+    ? records.suddenDeathLosses
+    : records.suddenDeathElims;
   const groups = [
     {
       title: "Winning",
@@ -1068,7 +1073,12 @@ function RecordsPage({ records, isMobile }) {
       items: [
         ["Most Sudden Death Appearances", records.suddenDeathApps],
         ["King of Sudden Death", records.suddenDeathWins],
-        ["Choker of Sudden Death", records.suddenDeathElims, "%", "suddenDeathEliminationPct"],
+        [
+          "Sudden Death Choker",
+          chokerRecord,
+          suddenDeathChokeMode === "losses" ? "" : "%",
+          suddenDeathChokeMode === "losses" ? "suddenDeathLosses" : "suddenDeathEliminationPct",
+        ],
       ],
     },
   ];
@@ -1087,6 +1097,22 @@ function RecordsPage({ records, isMobile }) {
           <section key={group.title} style={styles.panel}>
             <div style={styles.eyebrow}>{group.title}</div>
             <h2 style={styles.h2}>{group.title}</h2>
+            {group.title === "Clutch" && (
+              <div style={{ ...styles.segmented, marginTop: 12 }}>
+                <button
+                  onClick={() => setSuddenDeathChokeMode("losses")}
+                  style={suddenDeathChokeMode === "losses" ? styles.segmentActive : styles.segment}
+                >
+                  Losses
+                </button>
+                <button
+                  onClick={() => setSuddenDeathChokeMode("rate")}
+                  style={suddenDeathChokeMode === "rate" ? styles.segmentActive : styles.segment}
+                >
+                  Rate
+                </button>
+              </div>
+            )}
             <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
               {group.items.map(([title, record, suffix, kind]) => (
                 <div key={title} style={{ ...styles.recordRow, ...(isMobile ? styles.recordRowMobile : null) }}>
@@ -1619,6 +1645,9 @@ function formatRecordLeaders(record, kind) {
   }
   if (kind === "suddenDeathEliminationPct") {
     return record.leaders.map((leader) => `${leader.name} (${leader.suddenDeathEliminations}/${leader.suddenDeathAppearances})`).join(", ");
+  }
+  if (kind === "suddenDeathLosses") {
+    return record.leaders.map((leader) => `${leader.name} (${leader.suddenDeathEliminations} losses)`).join(", ");
   }
   if (kind === "attendance") {
     return record.leaders

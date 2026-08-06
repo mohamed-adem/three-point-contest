@@ -14,6 +14,30 @@ export const CONTEST_ROUNDS = ["Round 1", "Round 2", "Round 3", "Round 4", "Roun
 
 export const POWER_RANKING_WEEKS = [
   {
+    id: "2026-08-05",
+    title: "Week 13",
+    date: "August 5, 2026",
+    rankings: [
+      "Mohamed Abdisalan",
+      "Mohamed Omar",
+      "Khalid",
+      "Mohamed Adem",
+      "Ahmed-Suhaib",
+      "Majdi",
+      "Abdisalan",
+      "Yahya",
+      "Mohamed Salad",
+      "AhmedNur",
+      "Muhsin",
+      "Mohamed Ahmed",
+      "Salaad Abdi",
+      "Sebri",
+      "Abdulrahman",
+      "Abdimanan",
+      "Abdiaziz",
+    ],
+  },
+  {
     id: "2026-07-22",
     title: "Week 12",
     date: "July 22, 2026",
@@ -290,6 +314,42 @@ export const POWER_RANKINGS = POWER_RANKING_WEEKS[0].rankings;
 export const PREVIOUS_POWER_RANKINGS = POWER_RANKING_WEEKS[1].rankings;
 
 export const CONTESTS = [
+  {
+    id: "contest-13",
+    title: "Contest 13",
+    date: "August 5, 2026",
+    winner: "Mohamed Abdisalan",
+    runnerUp: "Mohamed Omar",
+    rawData: {
+      "Mohamed Abdisalan": { r1: "10000", r2: "01101", r3: "10111", r4: "10010", r5: "11010", r6: null, eliminated: 6, winner: true },
+      Khalid: { r1: "11110", r2: "11000", r3: "01011", r4: "00011", r5: null, r6: null, eliminated: 4, sdElim: true },
+      Muhsin: { r1: "00000", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1 },
+      "Ahmed-Suhaib": { r1: "10100", r2: "10010", r3: "10100", r4: "00001", r5: null, r6: null, eliminated: 4 },
+      Majdi: { r1: "10000", r2: "00010", r3: "10010", r4: null, r5: null, r6: null, eliminated: 3, sdElim: true },
+      Yahya: { r1: "00100", r2: "10000", r3: null, r4: null, r5: null, r6: null, eliminated: 2, sdElim: true },
+      Abdulrahman: { r1: "00000", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1 },
+      Abdisalan: { r1: "10010", r2: "01001", r3: "10001", r4: null, r5: null, r6: null, eliminated: 3, sdElim: true },
+      AhmedNur: { r1: "00000", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1 },
+      "Mohamed Salad": { r1: "00001", r2: "10000", r3: null, r4: null, r5: null, r6: null, eliminated: 2, sdElim: true },
+      "Mohamed Omar": { r1: { bye: true }, r2: "11101", r3: "01110", r4: "11111", r5: "10001", r6: null, eliminated: 5 },
+    },
+    suddenDeath: {
+      "Round 2": [
+        { player: "Yahya", summary: "0/1", status: "eliminated" },
+        { player: "Mohamed Salad", summary: "0/1", status: "eliminated" },
+        { player: "Majdi", summary: "1/1", status: "advanced" },
+      ],
+      "Round 3": [
+        { player: "Ahmed-Suhaib", summary: "1/1", status: "advanced" },
+        { player: "Abdisalan", summary: "0/1", status: "eliminated" },
+        { player: "Majdi", summary: "0/1", status: "eliminated" },
+      ],
+      "Round 4": [
+        { player: "Khalid", summary: "0/4", status: "eliminated" },
+        { player: "Mohamed Abdisalan", summary: "1/4", status: "advanced" },
+      ],
+    },
+  },
   {
     id: "contest-12",
     title: "Contest 12",

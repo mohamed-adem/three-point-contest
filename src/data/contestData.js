@@ -383,9 +383,6 @@ export const POWER_RANKING_WEEKS = [
   },
 ];
 
-export const POWER_RANKINGS = POWER_RANKING_WEEKS[0].rankings;
-export const PREVIOUS_POWER_RANKINGS = POWER_RANKING_WEEKS[1].rankings;
-
 export const CONTESTS = [
   {
     id: "contest-16",
@@ -897,3 +894,88 @@ export const CONTESTS = [
     },
   },
 ];
+
+export const POWER_RANKING_FORMULA = {
+  version: "v1",
+  recencyWeights: [0.5, 0.3, 0.2],
+  contestWeights: {
+    finish: 0.4,
+    shooting: 0.3,
+    advancement: 0.15,
+    suddenDeath: 0.1,
+    consistency: 0.05,
+  },
+};
+
+function getPlayerContestScore(contest, playerName) {
+  const data = contest.rawData[playerName];
+  if (!data) return 0;
+
+  const playedRoundIndexes = ROUND_KEYS.reduce((indexes, roundKey, index) => {
+    const round = data[roundKey];
+    if (round && round !== "?????") indexes.push(index);
+    return indexes;
+  }, []);
+  const highestRound = playedRoundIndexes.length ? playedRoundIndexes.at(-1) : -1;
+  const scores = playedRoundIndexes
+    .map((index) => data[ROUND_KEYS[index]])
+    .map((round) => (typeof round === "string" ? round.split("").reduce((sum, shot) => sum + (shot === "1" ? 1 : 0), 0) : round?.score ?? null))
+    .filter((score) => score !== null);
+  const makes = scores.reduce((sum, score) => sum + score, 0);
+  const attempts = playedRoundIndexes
+    .map((index) => data[ROUND_KEYS[index]])
+    .reduce((sum, round) => sum + (typeof round === "string" ? round.split("").filter((shot) => shot === "0" || shot === "1").length : round?.bye ? 0 : 5), 0);
+  const shooting = attempts ? (makes / attempts) * 100 : 0;
+  const consistency = scores.length ? (scores.reduce((sum, score) => sum + score, 0) / (scores.length * 5)) * 100 : 0;
+  const finish = data.winner || contest.winner === playerName
+    ? 100
+    : data.runnerUp || contest.runnerUp === playerName
+      ? 85
+      : highestRound >= 2
+        ? 70
+        : highestRound === 1
+          ? 55
+          : 40;
+  const advancement = highestRound < 0 ? 0 : ((highestRound + 1) / ROUND_KEYS.length) * 100;
+  const suddenDeathEntries = Object.values(contest.suddenDeath || {}).flat().filter((entry) => entry.player === playerName);
+  const suddenDeath = suddenDeathEntries.length
+    ? (suddenDeathEntries.reduce((sum, entry) => sum + (entry.status === "advanced" || entry.status === "winner" || entry.made ? 100 : 0), 0) / suddenDeathEntries.length)
+    : 50;
+
+  return (
+    POWER_RANKING_FORMULA.contestWeights.finish * finish
+    + POWER_RANKING_FORMULA.contestWeights.shooting * shooting
+    + POWER_RANKING_FORMULA.contestWeights.advancement * advancement
+    + POWER_RANKING_FORMULA.contestWeights.suddenDeath * suddenDeath
+    + POWER_RANKING_FORMULA.contestWeights.consistency * consistency
+  );
+}
+
+export function calculatePowerRankings(contests, knownPlayers = []) {
+  const players = new Set(knownPlayers);
+  contests.forEach((contest) => Object.keys(contest.rawData).forEach((player) => players.add(player)));
+
+  return [...players]
+    .map((player) => {
+      const latest = getPlayerContestScore(contests[0], player);
+      const previous = getPlayerContestScore(contests[1], player);
+      const olderScores = contests.slice(2).map((contest) => getPlayerContestScore(contest, player)).filter((score) => score > 0);
+      const olderForm = olderScores.length ? olderScores.reduce((sum, score) => sum + score, 0) / olderScores.length : 0;
+      const score = latest * POWER_RANKING_FORMULA.recencyWeights[0]
+        + previous * POWER_RANKING_FORMULA.recencyWeights[1]
+        + olderForm * POWER_RANKING_FORMULA.recencyWeights[2];
+      return { player, score, latest };
+    })
+    .sort((a, b) => b.score - a.score || b.latest - a.latest || a.player.localeCompare(b.player))
+    .map(({ player }) => player);
+}
+
+const knownRankingPlayers = POWER_RANKING_WEEKS.flatMap((week) => week.rankings);
+POWER_RANKING_WEEKS[0] = {
+  ...POWER_RANKING_WEEKS[0],
+  rankings: calculatePowerRankings(CONTESTS, knownRankingPlayers),
+  formulaVersion: POWER_RANKING_FORMULA.version,
+};
+
+export const POWER_RANKINGS = POWER_RANKING_WEEKS[0].rankings;
+export const PREVIOUS_POWER_RANKINGS = POWER_RANKING_WEEKS[1].rankings;

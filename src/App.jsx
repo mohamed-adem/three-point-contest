@@ -1301,7 +1301,6 @@ function PowerRankingsPage({ weeks, isMobile }) {
                 const currentRank = index + 1;
                 const previousRank = previousPositions.get(name);
                 const isNew = previousRank === undefined;
-                const hasLegacyRanking = name === "Mohamed Adem";
                 const delta = isNew ? null : previousRank - currentRank;
                 const trendStyle = isNew
                   ? styles.rankTrendNew
@@ -1326,7 +1325,6 @@ function PowerRankingsPage({ weeks, isMobile }) {
                   </div>
                   <div style={{ display: "grid", gap: 6, justifyItems: isMobile ? "start" : "end" }}>
                     <div style={{ ...styles.recordValue, fontSize: isMobile ? 24 : 30, textAlign: isMobile ? "left" : "right" }}>{name}</div>
-                    {hasLegacyRanking && <div style={styles.legacyRankTag}>Legacy ranking</div>}
                     <div style={trendStyle}>{trendText}</div>
                   </div>
                 </div>
@@ -2363,13 +2361,6 @@ const styles = {
     fontSize: 11,
     fontWeight: 700,
     letterSpacing: 1,
-  },
-  legacyRankTag: {
-    color: "#f1c40f",
-    fontSize: 11,
-    fontWeight: 800,
-    letterSpacing: 1,
-    textTransform: "uppercase",
   },
   bumpChartScroll: {
     marginTop: 16,

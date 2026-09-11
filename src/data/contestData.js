@@ -395,13 +395,13 @@ export const CONTESTS = [
     runnerUp: "Mohamed Adem",
     rawData: {
       "Mohamed Omar": { r1: "01000", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1 },
-      "Mohamed Abdisalan": { r1: "00111", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1 },
-      Majdi: { r1: "10001", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 2, sdElim: true },
+      "Mohamed Abdisalan": { r1: "00111", r2: "11011", r3: "00100", r4: null, r5: null, r6: null, eliminated: 3 },
+      Majdi: { r1: "10001", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1, sdElim: true },
       "Mohamed Adem": { r1: "10100", r2: "00100", r3: "10100", r4: null, r5: null, r6: null, eliminated: 6, runnerUp: true },
       Yahya: { r1: "10010", r2: "00000", r3: null, r4: null, r5: null, r6: null, eliminated: 2 },
       Abdisalan: { r1: "00010", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1 },
-      Khalid: { r1: "11000", r2: "00010", r3: "00100", r4: null, r5: null, r6: null, eliminated: 6 },
-      "Mohamed Ahmed (Houston)": { r1: "10101", r2: "11110", r3: "10001", r4: "01100", r5: null, r6: "00001", eliminated: 7, winner: true },
+      Khalid: { r1: "11000", r2: "00010", r3: "00100", r4: null, r5: null, r6: null, eliminated: 3 },
+      "Mohamed Ahmed (Houston)": { r1: "10101", r2: "11110", r3: "10001", r4: null, r5: null, r6: "01100", eliminated: 7, winner: true },
       "Ahmed-Suhaib": { r1: { bye: true }, r2: "00000", r3: null, r4: null, r5: null, r6: null, eliminated: 2 },
     },
     suddenDeath: {
@@ -422,11 +422,11 @@ export const CONTESTS = [
     rawData: {
       "Ahmed-Suhaib": { r1: "01110", r2: "11100", r3: "01001", r4: null, r5: null, r6: "01010", eliminated: 7, winner: true },
       Khalid: { r1: "00010", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1, sdElim: true },
-      Yahya: { r1: "00001", r2: "00011", r3: "01000", r4: null, r5: null, r6: null, eliminated: 4 },
+      Yahya: { r1: "00001", r2: "00011", r3: "01000", r4: null, r5: null, r6: null, eliminated: 3 },
       Muhsin: { r1: "00001", r2: "00000", r3: null, r4: null, r5: null, r6: null, eliminated: 2 },
       Majdi: { r1: "10110", r2: "01010", r3: "01001", r4: null, r5: null, r6: "01000", eliminated: 6 },
-      "Mohamed Abdisalan": { r1: "00110", r2: "00100", r3: null, r4: null, r5: null, r6: null, eliminated: 1, sdElim: true },
-      "Mohamed Adem": { r1: "10000", r2: "01000", r3: "00000", r4: null, r5: null, r6: null, eliminated: 4 },
+      "Mohamed Abdisalan": { r1: "00110", r2: "00100", r3: null, r4: null, r5: null, r6: null, eliminated: 2, sdElim: true },
+      "Mohamed Adem": { r1: "10000", r2: "01000", r3: "00000", r4: null, r5: null, r6: null, eliminated: 3 },
     },
     suddenDeath: {
       "Round 1": [

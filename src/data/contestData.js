@@ -397,7 +397,7 @@ export const CONTESTS = [
       "Mohamed Omar": { r1: "01000", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1 },
       "Mohamed Abdisalan": { r1: "00111", r2: "11011", r3: "00100", r4: null, r5: null, r6: null, eliminated: 3 },
       Majdi: { r1: "10001", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1, sdElim: true },
-      "Mohamed Adem": { r1: "10100", r2: "00100", r3: "10100", r4: null, r5: null, r6: null, eliminated: 6, runnerUp: true },
+      "Mohamed Adem": { r1: "10100", r2: "00100", r3: "10100", r4: null, r5: null, r6: "00001", eliminated: 6, runnerUp: true },
       Yahya: { r1: "10010", r2: "00000", r3: null, r4: null, r5: null, r6: null, eliminated: 2 },
       Abdisalan: { r1: "00010", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1 },
       Khalid: { r1: "11000", r2: "00010", r3: "00100", r4: null, r5: null, r6: null, eliminated: 3 },

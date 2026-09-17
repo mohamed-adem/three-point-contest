@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { calculateCharms } from "./data/charms";
 import {
   CONTEST_ROUNDS,
   CONTESTS,
@@ -587,7 +588,7 @@ function ContestsPage({ contests, activeContestId, onSelectContest, isMobile }) 
       </div>
 
       <div style={{ ...styles.contestLayout, ...(isMobile ? styles.singleColumnLayout : null) }}>
-        <aside style={styles.panel}>
+        <aside className="directory-panel" aria-label="Contest archive" style={styles.panel}>
           <div style={styles.eyebrow}>Archive</div>
           <div style={{ ...(isMobile ? styles.mobilePickerRow : styles.listStack), marginTop: 14 }}>
             {contests.map((contest) => (
@@ -855,9 +856,9 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
       </div>
 
       <div style={{ ...styles.playersLayout, ...(isMobile ? styles.singleColumnLayout : null) }}>
-        <aside style={styles.panel}>
+        <aside className="directory-panel" aria-label="Player directory" style={styles.panel}>
           <div style={styles.eyebrow}>Directory</div>
-          <div style={{ ...(isMobile ? styles.mobilePlayerDirectory : styles.listStack), marginTop: 14 }}>
+          <div style={{ ...(isMobile ? styles.mobilePickerRow : styles.listStack), marginTop: 14 }}>
             {players.map((player) => (
               <button
                 key={player.name}
@@ -960,6 +961,7 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
             </div>
           </section>
 
+          <CharmCards name={activePlayer.name} isMobile={isMobile} />
           <section style={styles.panel}>
             <div style={styles.eyebrow}>Contest history</div>
             <h3 style={styles.h3}>Round-by-round by contest</h3>
@@ -1165,13 +1167,43 @@ function RecordsPage({ records, isMobile }) {
   );
 }
 
+function CharmCards({ name, isMobile }) {
+  const charms = useMemo(() => calculateCharms(CONTESTS, name), [name]);
+  return (
+    <section style={styles.panel}>
+      <div style={styles.eyebrow}>Who’s in the room?</div>
+      <h3 style={styles.h3}>Lucky charm &amp; Jinx</h3>
+      <p style={styles.muted}>Based on finishing placement with and without each person. A fun correlation, not a cause.</p>
+      <div style={{ ...styles.twoColumn, ...(isMobile ? styles.singleColumn : {}) }}>
+        {[["Lucky charm", charms.lucky], ["Jinx", charms.jinx]].map(([label, entries]) => (
+          <div key={label} style={styles.panelInset}>
+            <div style={styles.eyebrow}>{label}</div>
+            {entries.length ? entries.map(entry => (
+              <div key={entry.name}>
+                <h3 style={styles.h3}>{entry.name}</h3>
+                <div style={styles.recordValue}>{entry.delta > 0 ? '+' : ''}{entry.delta.toFixed(1)} placement points</div>
+                <p style={styles.muted}>With: {entry.withScore.toFixed(1)} / 100 ({entry.together} contests)<br />Without: {entry.withoutScore.toFixed(1)} / 100 ({entry.apart} contests)</p>
+              </div>
+            )) : <p>{charms.eligible ? 'No qualifying association' : 'Not enough history'}</p>}
+          </div>
+        ))}
+      </div>
+      <details style={{ marginTop: 14 }}>
+        <summary>How this works</summary>
+        <p style={styles.muted}>Placement runs from 0 (last) to 100 (winner), with tied exits sharing placement. Each comparison needs three contests together and three apart. Picks use a small-sample discount; the numbers above show the actual averages. Attendance means competing, not spectating.</p>
+        <p style={styles.muted}>Contests 15 and 17 are excluded pending an identity correction and an incomplete round result.</p>
+      </details>
+    </section>
+  );
+}
+
 function ZoneRecordsCourt({ title, zones, mode, variant, isMobile }) {
   const positions = [
-    { top: "66%", left: "7%" },
+    { top: "70%", left: "20%" },
     { top: "34%", left: "21%" },
-    { top: "12%", left: "50%" },
+    { top: "14%", left: "50%" },
     { top: "34%", left: "79%" },
-    { top: "66%", left: "93%" },
+    { top: "70%", left: "80%" },
   ];
 
   if (isMobile) {
@@ -1191,7 +1223,7 @@ function ZoneRecordsCourt({ title, zones, mode, variant, isMobile }) {
                   : zone.worstPct;
 
             return (
-              <div key={`${title}-${zone.zone}`} style={styles.mobileZoneRecordCard}>
+              <div className="zone-record-card" key={`${title}-${zone.zone}`} style={styles.mobileZoneRecordCard}>
                 <div style={styles.eyebrow}>{zone.zone}</div>
                 <strong style={styles.courtRecordZoneTitle}>{zone.label}</strong>
                 <div style={styles.courtRecordLeaders}>{formatZoneCourtLeaders(record, mode)}</div>
@@ -1272,7 +1304,7 @@ function PowerRankingsPage({ weeks, isMobile }) {
       </div>
 
       <section style={styles.panel}>
-        <div style={styles.segmented}>
+        <div className="ranking-week-picker" style={styles.segmented}>
           {weeks.map((week) => (
             <button key={week.id} onClick={() => setActiveWeekId(week.id)} style={!isOverall && activeWeek.id === week.id ? styles.segmentActive : styles.segment}>
               {week.title}
@@ -1692,7 +1724,7 @@ export default function App() {
   };
 
   return (
-    <div style={styles.app}>
+    <div className="contest-app" style={styles.app}>
       <header style={{ ...styles.header, ...(isMobile ? styles.headerMobile : null) }}>
         <div style={isMobile ? { width: "100%" } : null}>
           <div style={{ ...styles.brand, ...(isMobile ? styles.brandMobile : null) }}>Home of the Mohamed Adem Three Point Contest</div>
@@ -2005,7 +2037,7 @@ const styles = {
   },
   twoColumn: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
     gap: 18,
   },
   singleColumn: {
@@ -2333,6 +2365,8 @@ const styles = {
     alignItems: "flex-start",
   },
   recordValue: {
+    overflowWrap: "anywhere",
+    maxWidth: "100%",
     fontFamily: "'Bebas Neue', cursive",
     fontSize: 30,
     color: "#F97316",
@@ -2427,7 +2461,7 @@ const styles = {
   },
   courtRecordNode: {
     position: "absolute",
-    width: 170,
+    width: "32%",
     border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: 8,
     background: "rgba(18,18,18,0.96)",

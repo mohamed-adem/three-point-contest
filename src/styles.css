@@ -18,6 +18,61 @@
   --blue: #38bdf8;
 }
 
+/* Keep selection lists independent from the detail pane. */
+.contest-app main div, .contest-app section, .contest-app aside {
+  min-width: 0;
+}
+.directory-panel {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+}
+.directory-panel > div:last-child {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  min-height: 0;
+}
+.contest-app button { touch-action: manipulation; }
+.contest-app button:focus-visible { outline: 2px solid #f97316; outline-offset: 3px; }
+.contest-app nav button { flex-shrink: 0; white-space: nowrap; }
+.ranking-week-picker {
+  flex-wrap: nowrap !important;
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+  gap: 8px;
+}
+.ranking-week-picker button { flex-shrink: 0; white-space: nowrap; }
+.contest-app svg { max-width: 100%; }
+
+@media (max-width: 768px) {
+  .contest-app main { padding: 16px 12px 28px !important; }
+  .contest-app section, .contest-app aside { padding: 14px !important; }
+  .contest-app h1 { font-size: 34px !important; overflow-wrap: anywhere; }
+  .contest-app h2 { font-size: 28px !important; overflow-wrap: anywhere; }
+  .contest-app h3 { font-size: 23px !important; }
+  .contest-app button { min-height: 44px; }
+  .contest-app nav button { padding: 12px 14px !important; }
+  .contest-app strong, .contest-app p { overflow-wrap: anywhere; }
+  .directory-panel { position: static; max-height: none; }
+  .directory-panel > div:last-child {
+    overflow-y: hidden;
+    scrollbar-gutter: auto;
+    scroll-snap-type: x proximity;
+    grid-auto-columns: minmax(0, 80%) !important;
+  }
+  .directory-panel button { scroll-snap-align: start; }
+  .zone-record-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 12px;
+  }
+  .zone-record-card > :nth-child(3) { grid-column: 1; font-size: 12px !important; }
+  .zone-record-card > :last-child { grid-column: 2; grid-row: 1 / 4; align-self: center; margin-top: 0 !important; }
+}
+
 * {
   box-sizing: border-box;
 }

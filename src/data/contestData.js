@@ -431,7 +431,7 @@ export const CONTESTS = [
         { player: "Salaad Abdi", summary: "1/1", status: "advanced" },
         { player: "Yahya", summary: "1/1", status: "advanced" },
         { player: "Mohamed Abdisalan", summary: "0/2", status: "eliminated" },
-        { player: "Majdi", summary: "1/1", status: "advanced" },
+        { player: "Majdi", summary: "1/1", status: "eliminated" },
       ],
       "Round 2": [
         { player: "Mohamed Adem", summary: "1/1", status: "advanced" },
@@ -478,7 +478,7 @@ export const CONTESTS = [
       Yahya: { r1: "00001", r2: "00011", r3: "01000", r4: null, r5: null, r6: null, eliminated: 3 },
       Muhsin: { r1: "00001", r2: "00000", r3: null, r4: null, r5: null, r6: null, eliminated: 2 },
       Majdi: { r1: "10110", r2: "01010", r3: "01001", r4: null, r5: null, r6: "01000", eliminated: 6 },
-      "Mohamed Abdisalan": { r1: "00110", r2: "00100", r3: null, r4: null, r5: null, r6: null, eliminated: 2, sdElim: true },
+      Abdisalan: { r1: "00110", r2: "00100", r3: null, r4: null, r5: null, r6: null, eliminated: 2, sdElim: true },
       "Mohamed Adem": { r1: "10000", r2: "01000", r3: "00000", r4: null, r5: null, r6: null, eliminated: 3 },
     },
     suddenDeath: {
@@ -490,7 +490,7 @@ export const CONTESTS = [
       ],
       "Round 2": [
         { player: "Mohamed Adem", summary: "1/2", status: "advanced" },
-        { player: "Mohamed Abdisalan", summary: "0/2", status: "eliminated" },
+        { player: "Abdisalan", summary: "0/2", status: "eliminated" },
       ],
     },
   },

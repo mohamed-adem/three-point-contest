@@ -4,9 +4,7 @@ Status: placement version implemented in player profiles as Lucky charm and Jinx
 
 The implementation uses finish percentile (0 last, 100 winner, ties share
 placement), averaged per contest. Both groups require three contests and picks
-use the n / (n + 5) discount described below. Contests 15 and 17 are excluded
-until the identity discrepancy and missing Majdi result are resolved. Visible
-cards show raw differences and sample counts. The FG% design below is retained
+use the n / (n + 5) discount described below. Visible cards show raw differences and sample counts. The FG% design below is retained
 as the original alternative, not the implemented metric.
 
 For each player A, compare A's shooting in contests attended by player B with

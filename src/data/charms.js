@@ -1,5 +1,4 @@
-// Exclude incomplete or disputed results until their source data is confirmed.
-export const CHARM_EXCLUDED_CONTESTS = new Set(['contest-15', 'contest-17']);
+export const CHARM_EXCLUDED_CONTESTS = new Set();
 
 export function calculateCharms(contests, name) {
   const valid = contests.filter(c => !CHARM_EXCLUDED_CONTESTS.has(c.id));

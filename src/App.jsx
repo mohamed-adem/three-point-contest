@@ -2469,7 +2469,7 @@ const styles = {
   },
   courtRecordNode: {
     position: "absolute",
-    width: "32%",
+    width: "clamp(150px, 16vw, 210px)",
     border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: 8,
     background: "rgba(18,18,18,0.96)",

@@ -590,7 +590,11 @@ function ContestsPage({ contests, activeContestId, onSelectContest, isMobile }) 
       <div style={{ ...styles.contestLayout, ...(isMobile ? styles.singleColumnLayout : null) }}>
         <aside className="directory-panel" aria-label="Contest archive" style={styles.panel}>
           <div style={styles.eyebrow}>Archive</div>
-          <div style={{ ...(isMobile ? styles.mobilePickerRow : styles.listStack), marginTop: 14 }}>
+          {isMobile ? (
+            <select className="mobile-directory-select" aria-label="Choose contest" value={activeContest.id} onChange={event => onSelectContest(event.target.value)}>
+              {contests.map(contest => <option key={contest.id} value={contest.id}>{contest.title} — {contest.date}</option>)}
+            </select>
+          ) : <div style={{ ...styles.listStack, marginTop: 14 }}>
             {contests.map((contest) => (
               <button key={contest.id} onClick={() => onSelectContest(contest.id)} style={contest.id === activeContest.id ? styles.listActive : styles.listButton}>
                 <strong>{contest.title}</strong>
@@ -598,7 +602,7 @@ function ContestsPage({ contests, activeContestId, onSelectContest, isMobile }) 
                 <span>🏆 {contest.winner}</span>
               </button>
             ))}
-          </div>
+          </div>}
         </aside>
 
         <div>
@@ -858,7 +862,11 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
       <div style={{ ...styles.playersLayout, ...(isMobile ? styles.singleColumnLayout : null) }}>
         <aside className="directory-panel" aria-label="Player directory" style={styles.panel}>
           <div style={styles.eyebrow}>Directory</div>
-          <div style={{ ...(isMobile ? styles.mobilePickerRow : styles.listStack), marginTop: 14 }}>
+          {isMobile ? (
+            <select className="mobile-directory-select" aria-label="Choose player" value={activePlayer.name} onChange={event => onOpenPlayer(event.target.value)}>
+              {players.map(player => <option key={player.name} value={player.name}>{player.name}</option>)}
+            </select>
+          ) : <div style={{ ...styles.listStack, marginTop: 14 }}>
             {players.map((player) => (
               <button
                 key={player.name}
@@ -878,7 +886,7 @@ function PlayersPage({ players, activePlayerName, onOpenPlayer, isMobile }) {
                 {!isMobile && <span>{player.wins} wins / {player.fgPct}% FG</span>}
               </button>
             ))}
-          </div>
+          </div>}
         </aside>
 
         <div>

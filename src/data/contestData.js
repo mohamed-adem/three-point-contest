@@ -14,6 +14,31 @@ export const CONTEST_ROUNDS = ["Round 1", "Round 2", "Round 3", "Round 4", "Roun
 
 export const POWER_RANKING_WEEKS = [
   {
+    id: "2026-09-24",
+    title: "Week 18",
+    date: "September 24, 2026",
+    rankings: [
+      "Mohamed Adem",
+      "Salaad Abdi",
+      "Mohamed Abdisalan",
+      "Yahya",
+      "Abdisalan",
+      "Majdi",
+      "Ahmed-Suhaib",
+      "Khalid",
+      "Mohamed Ahmed (Houston)",
+      "Mohamed Omar",
+      "Mohamed Ahmed",
+      "AhmedNur",
+      "Sebri",
+      "Muhsin",
+      "Mohamed Salad",
+      "Abdiaziz",
+      "Abdimanan",
+      "Abdulrahman",
+    ],
+  },
+  {
     id: "2026-09-16",
     title: "Week 17",
     date: "September 16, 2026",
@@ -409,6 +434,44 @@ export const POWER_RANKING_WEEKS = [
 ];
 
 export const CONTESTS = [
+  {
+    id: "contest-18",
+    title: "Contest 18",
+    date: "September 24, 2026",
+    winner: "Khalid",
+    runnerUp: "Salaad Abdi",
+    rawData: {
+      Khalid: { r1: "10011", r2: "11100", r3: "10001", r4: null, r5: null, r6: "00011", eliminated: 7, winner: true },
+      Muhsin: { r1: "00001", r2: "00100", r3: null, r4: null, r5: null, r6: null, eliminated: 2, sdElim: true },
+      "Mohamed Adem": { r1: "00000", r2: "10000", r3: "10100", r4: null, r5: null, r6: null, eliminated: 3, sdElim: true },
+      "Ahmed-Suhaib": { r1: "00000", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1, sdElim: true },
+      Yahya: { r1: "00000", r2: null, r3: null, r4: null, r5: null, r6: null, eliminated: 1, sdElim: true },
+      Abdisalan: { r1: "00110", r2: "01100", r3: "10000", r4: null, r5: null, r6: null, eliminated: 3 },
+      "Mohamed Omar": { r1: "10001", r2: "01110", r3: "01010", r4: null, r5: null, r6: null, eliminated: 3, sdElim: true },
+      "Salaad Abdi": { r1: { bye: true }, r2: "00111", r3: "00110", r4: null, r5: null, r6: "01100", eliminated: 6, runnerUp: true, sdElim: true },
+    },
+    suddenDeath: {
+      "Round 1": [
+        { player: "Mohamed Adem", summary: "1/1", status: "advanced" },
+        { player: "Ahmed-Suhaib", summary: "0/1", status: "eliminated" },
+        { player: "Yahya", summary: "0/1", status: "eliminated" },
+      ],
+      "Round 2": [
+        { player: "Mohamed Adem", summary: "1/1", status: "advanced" },
+        { player: "Muhsin", summary: "0/1", status: "eliminated" },
+      ],
+      "Round 3": [
+        { player: "Mohamed Adem", summary: "0/2", status: "eliminated" },
+        { player: "Mohamed Omar", summary: "0/2", status: "eliminated" },
+        { player: "Khalid", summary: "1/2", status: "advanced" },
+        { player: "Salaad Abdi", summary: "1/1", status: "advanced" },
+      ],
+      Final: [
+        { player: "Salaad Abdi", summary: "0/1", status: "eliminated" },
+        { player: "Khalid", summary: "1/1", status: "winner" },
+      ],
+    },
+  },
   {
     id: "contest-17",
     title: "Contest 17",
